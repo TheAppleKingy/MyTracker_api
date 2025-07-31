@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Query
 
 from domain.entities.users import User
 
@@ -43,6 +43,11 @@ async def update_task(id: int, data: TaskUpdateForUser, user: User = Depends(che
     return await task_service.update_task_for_user(user.id, id, data)
 
 
-@bot_router.delete('/finish_task/{id}', status_code=status.HTTP_204_NO_CONTENT)
-async def finish_task(id: int,  user: User = Depends(check_permissions(IsActivePermission())), task_service: TaskService = Depends(get_task_service)):
+@bot_router.patch('/finish_task/{id}', status_code=status.HTTP_204_NO_CONTENT)
+async def finish_task(id: int, user: User = Depends(check_permissions(IsActivePermission())), task_service: TaskService = Depends(get_task_service)):
     await task_service.finish_task_for_user(user.id, id)
+
+
+@bot_router.delete('/delete_task/{id}', status_code=status.HTTP_204_NO_CONTENT)
+async def delete_task(id: int, user: User = Depends(check_permissions(IsActivePermission())), task_service: TaskService = Depends(get_task_service)):
+    await task_service.delete_task(id)

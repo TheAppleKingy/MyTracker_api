@@ -85,3 +85,6 @@ class TaskService:
             raise TaskServiceError(
                 f'Task {task.id} does not belong to user with id {user_id}')
         return await self.finish_task(task_id)
+
+    async def delete_task(self, task_id: int):
+        return await self.repo.delete_task(task_id)
