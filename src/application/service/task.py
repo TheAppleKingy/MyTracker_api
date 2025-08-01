@@ -21,7 +21,6 @@ class TaskService:
 
     async def check_is_root_for_user(self, user_id: int, task_id: int):
         task = await self.repo.get_task(task_id)
-        print(task, 'task for checkin')
         self.check_belongs_to_user(user_id, task)
         if not task.is_root():
             raise TaskServiceError(
