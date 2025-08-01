@@ -71,8 +71,8 @@ To start the backend app:
 docker compose up --build
 ```
 
-This backend is used by the [MyTracker_bot](https://github.com/TheAppleKingy/MyTracker_bot).  
-The bot will not work correctly unless this backend is running.
+>This backend is used by the [MyTracker_bot](https://github.com/TheAppleKingy/MyTracker_bot).  
+>The bot will not work correctly unless this backend is running.
 
 ---
 
@@ -95,8 +95,8 @@ The API provides basic authentication features:
 - Login / Logout
 - Change password
 
-Every new registration requires email confirmation.  
-Refer to Swagger UI for request details.
+>Every new registration requires email confirmation.  
+>Refer to Swagger UI for request details.
 
 ---
 
@@ -131,13 +131,6 @@ The backend authenticates the user and returns JSON responses.
 - **Uvicorn** – ASGI server  
 - **asyncpg** – async PostgreSQL driver  
 - **Docker** – containerization
-
----
-
-## 📎 License
-
-MIT (or your actual license)
-
 ---
 
 Feel free to contribute or open issues.
