@@ -83,7 +83,7 @@ Swagger documentation is available at:
 
 🔗 [http://localhost:8000/docs](http://localhost:8000/docs)
 
-> ✅ Be sure to set the backend URL in the bot's environment as `BASE_API_URL`.
+> ✅ Be sure to set the backend container name to `BASE_API_URL`.
 
 ---
 
