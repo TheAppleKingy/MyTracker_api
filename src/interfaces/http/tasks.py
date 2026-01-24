@@ -1,16 +1,5 @@
 from fastapi import APIRouter, Depends, status, Query
 
-from domain.entities.users import User
-
-from application.service.task import TaskService
-from application.service.user import UserAuthDataService
-from application.dto.task_dto import TaskViewForUser, TaskCreateForUser, TaskUpdateForUser
-from application.dto.users_dto import CheckIsActive
-
-from infra.security.permissions.permissions import IsActivePermission
-
-from ..dependencies import get_task_service, check_permissions, get_user_auth_data_service
-
 
 bot_router = APIRouter(
     prefix='/api/bot',

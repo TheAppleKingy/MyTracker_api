@@ -16,7 +16,7 @@ from infra.security.permissions.permissions import IsActivePermission
 from infra.security.password_utils import hash_password
 from application.service.user import UserAuthService, UserPermissionService, UserAuthDataService
 from application.service.exceptions import UserAuthServiceError, UserPermissionServiceError, UserAuthDataServiceError
-from application.dto.users_dto import Login, UserCreate, ChangePassword
+from application.dto.users import Login, UserCreate, ChangePassword
 
 
 pytest_mark_asyncio = pytest.mark.asyncio

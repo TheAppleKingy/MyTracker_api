@@ -1,20 +1,36 @@
 from datetime import datetime, timezone
 from typing import Optional
-
-
+from collections import deque
 from dataclasses import dataclass, field
+
+from .exceptions import (
+    UnfifnishedTaskError,
+    HasNoDirectAccessError,
+    InvalidDeadlineError,
+    MaxDepthError
+)
 
 
 @dataclass
 class Task:
     title: str
-    description: str
-    deadline: datetime
+    _deadline: datetime
     user_id: int
+    id: int = field(default=None, init=False)
+    description: Optional[str] = None
     creation_date: datetime = field(default_factory=lambda: datetime.now(timezone.utc), init=False)
-    pass_date: Optional[datetime] = field(default=None, init=False)
-    task_id: Optional[int] = None
+    _pass_date: Optional[datetime] = field(default=None, init=False)
+    parent: Optional["Task"] = None
+    parent_id: Optional[int] = field(default=None, init=False)
     subtasks: list['Task'] = field(default_factory=list, init=False)
+
+    @property
+    def deadline(self):
+        return self._deadline
+
+    @deadline.setter
+    def deadline(self, *_):
+        raise HasNoDirectAccessError("Cannot set deadline directly")
 
     @property
     def is_root(self):
@@ -22,9 +38,31 @@ class Task:
 
     @property
     def is_done(self):
-        return bool(self.pass_date)
+        return bool(self._pass_date)
 
-    def mark_as_done(self):
-        self.pass_date = datetime.now(timezone.utc)
+    @property
+    def pass_date(self):
+        return self._pass_date
+
+    @pass_date.setter
+    def pass_date(self, *_):
+        raise HasNoDirectAccessError("Cannot set pass date directly")
+
+    def force_mark_as_done(self):
+        self._pass_date = datetime.now(timezone.utc)
         for sub in self.subtasks:
             sub.mark_as_done()
+
+    def mark_as_done(self):
+        queue = deque(self.subtasks)
+        while queue:
+            current = queue.popleft()
+            if not current.is_done:
+                raise UnfifnishedTaskError("Unable finish task while subtasks not fininshed")
+            queue.extend(current.subtasks)
+        self._pass_date = datetime.now(timezone.utc)
+
+    def get_depth(self) -> int:
+        if self.parent is None:
+            return 1
+        return self.parent.get_depth() + 1

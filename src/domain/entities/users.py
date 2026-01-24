@@ -6,7 +6,6 @@ from .tasks import Task
 @dataclass
 class User:
     tg_name: str
-    email: EmailStr
     password: str
-    is_active: bool = field(default=False, init=False)
-    tasks: list[Task]
+    id: int = field(default=None, init=False)
+    tasks: list[Task] = field(default_factory=list, init=False)

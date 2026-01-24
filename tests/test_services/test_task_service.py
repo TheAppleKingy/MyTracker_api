@@ -9,7 +9,7 @@ from infra.db.repository.user_repo import UserRepository
 from infra.db.repository.task_repo import TaskRepository
 from application.service.task import TaskService
 from application.service.exceptions import TaskServiceError
-from application.dto.task_dto import TaskCreateForUser, TaskUpdateForUser
+from application.dto.task import TaskCreateForUser, TaskUpdateForUser
 
 
 pytest_mark_asyncio = pytest.mark.asyncio

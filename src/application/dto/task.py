@@ -4,21 +4,17 @@ from datetime import datetime, timezone, timedelta
 from pydantic import BaseModel, Field
 
 
-class TaskCreate(BaseModel):
-    title: str = Field(max_length=100)
-    description: str = Field(max_length=500)
-    creation_date: datetime
-    deadline: datetime
-    user_id: int
-    task_id: Optional[int] = None
+class TaskCreateDTO(BaseModel):
+    title: str
+    description: Optional[str] = None
+    deadline: Optional[datetime] = None
+    parent_id: Optional[int] = None
 
 
-class TaskUpdate(BaseModel):
+class TaskUpdateDTO(BaseModel):
     title: Optional[str] = Field(max_length=100, default=None)
     description: Optional[str] = Field(max_length=500, default=None)
     deadline: Optional[datetime] = None
-    user_id: Optional[int] = None
-    task_id: Optional[int] = None
 
 
 class TaskView(BaseModel):

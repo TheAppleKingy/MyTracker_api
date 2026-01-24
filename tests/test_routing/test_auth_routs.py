@@ -10,7 +10,7 @@ from domain.entities.users import User
 from infra.db.repository.user_repo import UserRepository
 from infra.security.token.factory import TokenHandlerFactory
 from infra.security.password_utils import check_password
-from application.dto.users_dto import UserView
+from application.dto.users import UserView
 from application.service.exceptions import UserAuthServiceError
 
 
