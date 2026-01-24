@@ -6,7 +6,7 @@ from src.application.dto.task import (
     TaskCreateDTO,
     TaskUpdateDTO
 )
-
+from src.domain.types import AuthenticatedUserId, AuthenticatedOwnerId
 
 __all__ = [
     "ShowTaskTree",
@@ -15,7 +15,8 @@ __all__ = [
     "UpdateTask",
     "DeleteTask",
     "FinishTask",
-    "ForceFinishTask"
+    "ForceFinishTask",
+    "ShowUserTaskTrees"
 ]
 
 
@@ -41,8 +42,14 @@ class ShowTask(BaseTaskUseCase):
             return await self._task_repo.get_by_id(task_id)
 
 
+class ShowUserTaskTrees(BaseTaskUseCase):
+    async def execute(self, user_id: AuthenticatedUserId):
+        async with self._uow:
+            return await self._task_repo.get_user_tasks_trees(user_id)
+
+
 class CreateTask(BaseTaskUseCase):
-    async def execute(self, user_id: int, dto: TaskCreateDTO):
+    async def execute(self, user_id: AuthenticatedUserId, dto: TaskCreateDTO):
         async with self._uow as uow:
             parent = None
             if dto.parent_id:

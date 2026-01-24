@@ -1,5 +1,5 @@
 services:
-  app:
+  tracker_app:
     build:
       context: ../../
       dockerfile: build/dev/Dockerfile
@@ -7,32 +7,35 @@ services:
       - .env
     ports:
       - "8000:8000"
-    command: >
-      sh -c "alembic upgrade head && uvicorn src.app:app --host 0.0.0.0 --port 8000 --reload"
+    command: uvicorn src.app:app --host 0.0.0.0 --port 8000 --reload
     volumes:
       - ../../src:/app/src
     depends_on:
-      - database
+      - tracker_database
     networks:
       - tracker_network
       - MyTrackerNetwork
     
-  database:
+  tracker_database:
+    hostname: database
     image: postgres:18-alpine
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - tracker_postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     env_file:
       - .env
     networks:
+      - tracker_migrations_network
       - tracker_network
 
 
 volumes:
-  postgres_data:
+  tracker_postgres_data:
 
 networks:
   MyTrackerNetwork:
     external: true
-  tracker_backend_network:
+  tracker_network:
+  tracker_migrations_network:
+    external: true

@@ -1,13 +1,26 @@
+from typing import Optional
+
 from src.domain.entities import User
 from src.application.interfaces.uow import UoWInterface
-from src.application.interfaces.repositories import UserRepositoryInterface
+from src.domain.types import AuthenticatedUserId, AuthenticatedOwnerId
+from src.application.interfaces.repositories import UserRepositoryInterface, TaskRepositoryInterface
 from src.application.interfaces.services import PasswordServiceInterface, AuthenticationServiceInterface
 from src.application.dto.users import LoginUserDTO, RegisterUserDTO, ChangePasswordDTO
 from .exceptions import (
     UndefinedUserError,
     InvalidUserPasswordError,
-    UserExistsError
+    UserExistsError,
+    UndefinedTaskError,
+    HasNoAccessError
 )
+from src.logger import logger
+__all__ = [
+    "LoginUser",
+    "RegisterUser",
+    "ChangePassword",
+    "AuthenticateUser",
+    "AuthenticateTaskOwner"
+]
 
 
 class LoginUser:
@@ -54,7 +67,7 @@ class RegisterUser:
             registered = User(dto.tg_name, self._password_service.hash_password(dto.password))
             uow.save(registered)
             await uow.flush()
-            return self._auth_service.generate_token(registered.id)
+            return self._auth_service.generate_token(registered.tg_name)
 
 
 class ChangePassword:
@@ -72,3 +85,46 @@ class ChangePassword:
         async with self._uow:
             user = await self._user_repo.get_by_tg_name(tg_name)
             user.password = self._password_service.hash_password(dto.new_password)
+
+
+class AuthenticateUser:
+    def __init__(
+        self,
+        uow: UoWInterface,
+        user_repo: UserRepositoryInterface,
+        auth_service: AuthenticationServiceInterface
+    ):
+        self._uow = uow
+        self._user_repo = user_repo
+        self._auth_service = auth_service
+
+    async def execute(self, token: Optional[str]):
+        if not token:
+            raise UndefinedUserError("Unauthorized", status=401)
+        tg_name = self._auth_service.get_tg_name_from_token(token)
+        if not tg_name:
+            raise UndefinedUserError("Unauthorized", status=401)
+        async with self._uow:
+            user = await self._user_repo.get_by_tg_name(tg_name)
+            if not user:
+                raise UndefinedUserError("Unauthorized", status=401)
+        return AuthenticatedUserId(user.id)  # type: ignore
+
+
+class AuthenticateTaskOwner:
+    def __init__(
+        self,
+        uow: UoWInterface,
+        task_repo: TaskRepositoryInterface
+    ):
+        self._uow = uow
+        self._task_repo = task_repo
+
+    async def execute(self, task_id: int, user_id: AuthenticatedUserId):
+        async with self._uow:
+            task = await self._task_repo.get_by_id(task_id)
+            if not task:
+                raise UndefinedTaskError("Unable to find task")
+            if task.user_id != user_id:
+                raise HasNoAccessError("User has no access the task", status=403)
+        return AuthenticatedOwnerId(user_id)

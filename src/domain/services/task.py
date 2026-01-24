@@ -16,7 +16,7 @@ class BaseTaskManagerService:
             raise InvalidDeadlineError("Deadline cannot be less or equal than now")
 
 
-class TaskProducerService:
+class TaskProducerService(BaseTaskManagerService):
     def _validate_depth(self, parent: Task):
         if parent.get_depth() > MAX_DEPTH:
             raise MaxDepthError(f"Depth of task tree couldn't be more than {MAX_DEPTH}")

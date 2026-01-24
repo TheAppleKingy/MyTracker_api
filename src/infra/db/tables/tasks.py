@@ -14,5 +14,5 @@ tasks = Table(
     Column("user_id", ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
     Column("creation_date", DateTime(timezone=True), nullable=False),
     Column("pass_date", DateTime(timezone=True), nullable=True),
-    Column("task_id", ForeignKey("tasks.id", ondelete="CASCADE"), nullable=True)
+    Column("parent_id", ForeignKey("tasks.id", ondelete="CASCADE"), nullable=True)
 )

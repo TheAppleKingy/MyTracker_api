@@ -11,3 +11,11 @@ class InvalidUserPasswordError(ApplicationError):
 
 class UserExistsError(ApplicationError):
     pass
+
+
+class UndefinedTaskError(ApplicationError):
+    pass
+
+
+class HasNoAccessError(ApplicationError):
+    pass

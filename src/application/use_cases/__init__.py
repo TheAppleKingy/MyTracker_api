@@ -1,2 +1,2 @@
-from .auth import RegisterUser, LoginUser, ChangePassword
+from .auth import *
 from .tasks import *

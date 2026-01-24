@@ -1,28 +1,62 @@
-from fastapi import FastAPI
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, APIRouter, Request
+from fastapi.responses import JSONResponse
+from dishka.integrations.fastapi import setup_dishka
+from sqlalchemy.orm import registry, relationship, column_property
+
+from src.domain.entities import User, Task
+from src.domain.exc import HandledError
+from src.interfaces.http import *
+from src.infra.db.tables import tasks, users
+from src.container import container
+from src.logger import logger
 
 
-app = FastAPI()
+def map_tables():
+    mapper_registry = registry()
+    mapper_registry.map_imperatively(User, users, properties={
+        "tasks": relationship(Task, lazy='raise', cascade="all, delete-orphan", passive_deletes=True)
+    })
+    mapper_registry.map_imperatively(Task, tasks, properties={
+        "_deadline": column_property(tasks.c.deadline),
+        "subtasks": relationship(
+            Task,
+            back_populates="parent",
+            lazy="raise",
+            cascade="all, delete-orphan",
+            passive_deletes=True,
+            remote_side=[tasks.c.parent_id],
+        ),
+        "parent": relationship(Task, back_populates="subtasks", lazy='raise', uselist=False, remote_side=[tasks.c.id])
+    })
+    mapper_registry.configure()
 
 
-def include_routers():
-    from interfaces.api.routing.auth_routs import profile_router
-    from interfaces.api.routing.api_for_bot import bot_router
-    app.include_router(profile_router)
-    app.include_router(bot_router)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    map_tables()
+    setup_routers(app)
+    logger.info("Tracker backend is ready. Starting...")
+    yield
+    logger.info("Tracker backend shitdown")
+    await container.close()
 
 
-def include_exc_handlers():
-    from interfaces.api.exc_handlers import (
-        service_error_handler,
-        permission_error_handler,
-        auth_error_handler,
-    )
-    from application.service.exceptions import UserPermissionServiceError, ServiceError, UserAuthServiceError
-    app.add_exception_handler(ServiceError, service_error_handler)
-    app.add_exception_handler(
-        UserPermissionServiceError, permission_error_handler)
-    app.add_exception_handler(UserAuthServiceError, auth_error_handler)
+app = FastAPI(lifespan=lifespan)
+setup_dishka(container, app)
 
 
-include_routers()
-include_exc_handlers()
+@app.middleware("http")
+async def handle_auth(r: Request, call_next):
+    try:
+        return await call_next(r)
+    except HandledError as e:
+        return JSONResponse({"detail": str(e)}, e.status)
+
+
+def setup_routers(app: FastAPI):
+    api_router = APIRouter(prefix="/api/v1")
+    api_router.include_router(task_router)
+    api_router.include_router(auth_router)
+    app.include_router(api_router)

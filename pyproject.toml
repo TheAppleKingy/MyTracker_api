@@ -30,7 +30,8 @@ dependencies = [
     "fastapi-cachetools (>=0.1.0,<0.2.0)",
     "pytest-mock (>=3.14.1,<4.0.0)",
     "dishka (>=1.7.2,<2.0.0)",
-    "email-validator (>=2.3.0,<3.0.0)"
+    "email-validator (>=2.3.0,<3.0.0)",
+    "pydantic-settings (>=2.12.0,<3.0.0)"
 ]
 
 

@@ -1,6 +1,6 @@
 from typing import Protocol, Optional
 
-from domain.entities.users import User
+from src.domain.entities.users import User
 
 
 class UserRepositoryInterface(Protocol):

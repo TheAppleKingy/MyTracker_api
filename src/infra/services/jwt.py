@@ -20,7 +20,7 @@ class JWTAuthenticationService(AuthenticationServiceInterface):
     def generate_token(self, user_id: int, exp: Optional[int] = None) -> str:
         return self.encode({"user_id": user_id}, exp=exp)
 
-    def get_user_id_from_token(self, token: str) -> Optional[int]:
+    def get_tg_name_from_token(self, token: str) -> Optional[str]:
         try:
             payload = self.decode(token)
         except jwt.InvalidTokenError:

@@ -32,18 +32,15 @@ class TaskTree(TaskView):
     subtasks: list['TaskTree']
 
 
-class TaskViewForUser(BaseModel):
+class TaskViewForUserDTO(BaseModel):
     id: int
     title: str
     description: str
     creation_date: datetime
     deadline: datetime
-    pass_date: Optional[datetime]
-    task_id: Optional[int]
-    subtasks: list['TaskViewForUser']
-
-    class Config:
-        orm_mode = True
+    pass_date: Optional[datetime] = None
+    parent_id: Optional[int] = None
+    subtasks: list['TaskViewForUserDTO'] = []
 
 
 class TaskCreateForUser(BaseModel):

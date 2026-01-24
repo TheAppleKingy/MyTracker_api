@@ -6,8 +6,6 @@ from dataclasses import dataclass, field
 from .exceptions import (
     UnfifnishedTaskError,
     HasNoDirectAccessError,
-    InvalidDeadlineError,
-    MaxDepthError
 )
 
 
