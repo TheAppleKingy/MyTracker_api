@@ -6,17 +6,18 @@ from src.application.dto.task import (
     TaskCreateDTO,
     TaskUpdateDTO
 )
-from src.domain.types import AuthenticatedUserId, AuthenticatedOwnerId
+from src.domain.types import AuthenticatedUserId
+from .exceptions import UndefinedTaskError, TaskAlreadyFinishedError
 
 __all__ = [
-    "ShowTaskTree",
     "ShowTask",
+    "ShowActiveTasks",
+    "ShowFinishedTasks",
     "CreateTask",
     "UpdateTask",
     "DeleteTask",
     "FinishTask",
-    "ForceFinishTask",
-    "ShowUserTaskTrees"
+    "ForceFinishTask"
 ]
 
 
@@ -30,22 +31,22 @@ class BaseTaskUseCase:
         self._task_repo = task_repo
 
 
-class ShowTaskTree(BaseTaskUseCase):
-    async def execute(self, task_id: int):
-        async with self._uow:
-            return await self._task_repo.get_task_tree(task_id)
-
-
 class ShowTask(BaseTaskUseCase):
     async def execute(self, task_id: int):
         async with self._uow:
-            return await self._task_repo.get_by_id(task_id)
+            return await self._task_repo.get_task_with_subtasks(task_id)
 
 
-class ShowUserTaskTrees(BaseTaskUseCase):
+class ShowActiveTasks(BaseTaskUseCase):
     async def execute(self, user_id: AuthenticatedUserId):
         async with self._uow:
-            return await self._task_repo.get_user_tasks_trees(user_id)
+            return await self._task_repo.get_active_tasks(user_id)
+
+
+class ShowFinishedTasks(BaseTaskUseCase):
+    async def execute(self, user_id: AuthenticatedUserId):
+        async with self._uow:
+            return await self._task_repo.get_finished_tasks(user_id)
 
 
 class CreateTask(BaseTaskUseCase):
@@ -53,7 +54,9 @@ class CreateTask(BaseTaskUseCase):
         async with self._uow as uow:
             parent = None
             if dto.parent_id:
-                parent = await self._task_repo.get_by_id(dto.parent_id)
+                parent = await self._task_repo.get_with_parents(dto.parent_id)
+                if not parent:
+                    raise UndefinedTaskError("Unable to bind parent task: task does not exist")
             manager = TaskProducerService()
             created = manager.create_task(
                 dto.title,
@@ -87,12 +90,16 @@ class DeleteTask(BaseTaskUseCase):
 class FinishTask(BaseTaskUseCase):
     async def execute(self, task_id: int):
         async with self._uow:
-            task = await self._task_repo.get_nested_task(task_id)
+            task = await self._task_repo.get_task_tree(task_id)
+            if task.is_done:
+                raise TaskAlreadyFinishedError("Task already finished")
             task.mark_as_done()
 
 
 class ForceFinishTask(BaseTaskUseCase):
     async def execute(self, task_id: int):
         async with self._uow:
-            task = await self._task_repo.get_nested_task(task_id)
+            task = await self._task_repo.get_task_tree(task_id)
+            if task.is_done:
+                raise TaskAlreadyFinishedError("Task already finished")
             task.force_mark_as_done()

@@ -19,3 +19,7 @@ class UndefinedTaskError(ApplicationError):
 
 class HasNoAccessError(ApplicationError):
     pass
+
+
+class TaskAlreadyFinishedError(ApplicationError):
+    pass

@@ -1,7 +1,6 @@
 from typing import Optional
 
 from sqlalchemy import select, func
-from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.entities.users import User

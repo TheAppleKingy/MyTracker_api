@@ -1,7 +1,7 @@
 from typing import Optional
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class TaskCreateDTO(BaseModel):
@@ -12,24 +12,25 @@ class TaskCreateDTO(BaseModel):
 
 
 class TaskUpdateDTO(BaseModel):
-    title: Optional[str] = Field(max_length=100, default=None)
-    description: Optional[str] = Field(max_length=500, default=None)
+    title: Optional[str] = None
+    description: Optional[str] = None
     deadline: Optional[datetime] = None
 
 
-class TaskView(BaseModel):
+class TaskViewDTO(BaseModel):
     id: int
     title: str
     description: str
     creation_date: datetime
     deadline: datetime
-    pass_date: Optional[datetime]
-    user_id: int
-    task_id: Optional[int] = None
+    pass_date: Optional[datetime] = None
+    parent_id: Optional[int] = None
+    subtasks: list["TaskPreviewDTO"] = []
 
 
-class TaskTree(TaskView):
-    subtasks: list['TaskTree']
+class TaskPreviewDTO(BaseModel):
+    id: int
+    title: str
 
 
 class TaskViewForUserDTO(BaseModel):
@@ -41,19 +42,3 @@ class TaskViewForUserDTO(BaseModel):
     pass_date: Optional[datetime] = None
     parent_id: Optional[int] = None
     subtasks: list['TaskViewForUserDTO'] = []
-
-
-class TaskCreateForUser(BaseModel):
-    title: str = Field(max_length=100)
-    description: str = Field(max_length=500)
-    creation_date: datetime
-    deadline: datetime
-    task_id: Optional[int] = None
-
-
-class TaskUpdateForUser(BaseModel):
-    title: Optional[str] = Field(max_length=100, default=None)
-    description: Optional[str] = Field(max_length=500, default=None)
-    deadline: Optional[datetime] = None
-    pass_date: Optional[datetime] = None
-    task_id: Optional[int] = None

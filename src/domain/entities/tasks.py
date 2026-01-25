@@ -49,7 +49,7 @@ class Task:
     def force_mark_as_done(self):
         self._pass_date = datetime.now(timezone.utc)
         for sub in self.subtasks:
-            sub.mark_as_done()
+            sub.force_mark_as_done()
 
     def mark_as_done(self):
         queue = deque(self.subtasks)

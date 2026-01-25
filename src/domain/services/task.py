@@ -18,7 +18,7 @@ class BaseTaskManagerService:
 
 class TaskProducerService(BaseTaskManagerService):
     def _validate_depth(self, parent: Task):
-        if parent.get_depth() > MAX_DEPTH:
+        if parent.get_depth() >= MAX_DEPTH:
             raise MaxDepthError(f"Depth of task tree couldn't be more than {MAX_DEPTH}")
 
     def create_task(

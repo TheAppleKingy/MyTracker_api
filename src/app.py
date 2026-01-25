@@ -20,6 +20,7 @@ def map_tables():
     })
     mapper_registry.map_imperatively(Task, tasks, properties={
         "_deadline": column_property(tasks.c.deadline),
+        "_pass_date": column_property(tasks.c.pass_date),
         "subtasks": relationship(
             Task,
             back_populates="parent",
