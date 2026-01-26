@@ -70,7 +70,7 @@ class ServiceProvider(Provider):
 
     @provide(scope=Scope.APP)
     def get_app_conf(self) -> AppConfig:
-        return AppConfig()
+        return AppConfig()  # type: ignore
 
     @provide
     def get_auth_service(self, conf: AppConfig) -> AuthenticationServiceInterface:
@@ -107,7 +107,7 @@ class AuthProvider(Provider):
         use_case: AuthenticateTaskOwner,
         user_id: AuthenticatedUserId
     ) -> AuthenticatedOwnerId:
-        return await use_case.execute(int(r.path_params.get("task_id")), user_id)
+        return await use_case.execute(int(r.path_params.get("task_id")), user_id)  # type: ignore
 
 
 container = make_async_container(

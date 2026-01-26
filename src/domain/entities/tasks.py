@@ -14,7 +14,7 @@ class Task:
     title: str
     _deadline: datetime
     user_id: int
-    id: int = field(default=None, init=False)
+    id: int = field(default=None, init=False)  # type: ignore
     description: Optional[str] = None
     creation_date: datetime = field(default_factory=lambda: datetime.now(timezone.utc), init=False)
     _pass_date: Optional[datetime] = field(default=None, init=False)

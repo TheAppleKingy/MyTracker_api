@@ -14,52 +14,52 @@ class AlchemyTaskRepository(TaskRepositoryInterface):
         self._session = session
 
     async def get_by_id(self, task_id: int) -> Optional[Task]:
-        return await self._session.scalar(select(Task).where(Task.id == task_id))
+        return await self._session.scalar(select(Task).where(Task.id == task_id))  # type: ignore
 
-    async def get_with_parents(self, task_id: int) -> Optional[Task]:
+    async def get_with_parents(self, task_id: int) -> Task:
         return await self._session.scalar(
-            select(Task).where(Task.id == task_id).options(
-                selectinload(Task.parent, recursion_depth=MAX_DEPTH-1)
+            select(Task).where(Task.id == task_id).options(  # type: ignore
+                selectinload(Task.parent, recursion_depth=MAX_DEPTH-1)  # type: ignore
             )
         )
 
-    async def get_with_parent_and_subs(self, task_id: int) -> Optional[Task]:
+    async def get_with_parent_and_subs(self, task_id: int) -> Task:
         return await self._session.scalar(
-            select(Task).where(Task.id == task_id).options(
-                selectinload(Task.parent),
-                selectinload(Task.subtasks, recursion_depth=MAX_DEPTH-1)
+            select(Task).where(Task.id == task_id).options(  # type: ignore
+                selectinload(Task.parent),  # type: ignore
+                selectinload(Task.subtasks, recursion_depth=MAX_DEPTH-1)  # type: ignore
             )
         )
 
     async def get_active_tasks(self, user_id: int) -> list[Task]:
         res = await self._session.scalars(
             select(Task).where(
-                Task.user_id == user_id, Task.parent_id == None, Task._pass_date == None
-            ).options(selectinload(Task.subtasks))
+                Task.user_id == user_id, Task.parent_id == None, Task._pass_date == None  # type: ignore
+            ).options(selectinload(Task.subtasks))  # type: ignore
         )
         return res.all()  # type: ignore
 
     async def get_finished_tasks(self, user_id: int) -> list[Task]:
         res = await self._session.scalars(
             select(Task).where(
-                Task.user_id == user_id, Task.parent_id == None, Task._pass_date != None
-            ).options(selectinload(Task.subtasks))
+                Task.user_id == user_id, Task.parent_id == None, Task._pass_date != None  # type: ignore
+            ).options(selectinload(Task.subtasks))  # type: ignore
         )
         return res.all()  # type: ignore
 
-    async def get_task_with_subtasks(self, from_task_id: int) -> Optional[Task]:
+    async def get_task_with_subtasks(self, from_task_id: int) -> Task:
         return await self._session.scalar(
-            select(Task).where(Task.id == from_task_id).options(
-                selectinload(Task.subtasks)
+            select(Task).where(Task.id == from_task_id).options(  # type: ignore
+                selectinload(Task.subtasks)  # type: ignore
             )
         )
 
-    async def get_task_tree(self, from_task_id: int) -> Optional[Task]:
+    async def get_task_tree(self, from_task_id: int) -> Task:
         return await self._session.scalar(
-            select(Task).where(Task.id == from_task_id).options(
-                selectinload(Task.subtasks, recursion_depth=MAX_DEPTH-1)
+            select(Task).where(Task.id == from_task_id).options(  # type: ignore
+                selectinload(Task.subtasks, recursion_depth=MAX_DEPTH-1)  # type: ignore
             )
         )
 
     async def delete_task(self, task_id: int) -> None:
-        return await self._session.execute(delete(Task).where(Task.id == task_id))
+        return await self._session.execute(delete(Task).where(Task.id == task_id))  # type: ignore
