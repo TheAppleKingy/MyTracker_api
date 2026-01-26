@@ -58,11 +58,11 @@ tracker.prod.build: tracker.network.setup
 
 
 tracker.prod.start:
-	@docker compose -f ${PROD_COMPOSE} up
+	@docker compose -f ${PROD_COMPOSE} up -d
 
 
 tracker.prod.build.start: tracker.prod.build
-	@docker compose -f ${PROD_COMPOSE} up
+	@docker compose -f ${PROD_COMPOSE} up -d
 
 tracker.prod.down:
 	@docker compose -f ${PROD_COMPOSE} down
