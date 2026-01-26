@@ -74,7 +74,7 @@ class ServiceProvider(Provider):
 
     @provide
     def get_auth_service(self, conf: AppConfig) -> AuthenticationServiceInterface:
-        return JWTAuthenticationService(conf.token_expire_time, conf.secret)
+        return JWTAuthenticationService(conf.secret)
 
 
 use_case_provider = Provider(scope=Scope.REQUEST)
