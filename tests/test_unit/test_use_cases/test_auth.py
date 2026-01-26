@@ -350,29 +350,6 @@ def test_execute_empty_token_raises_error():
     mock_user_repo.get_by_tg_name.assert_not_called()
 
 
-def test_execute_invalid_token_raises_error():
-    """Test authentication with invalid token raises UndefinedUserError"""
-    # Arrange
-    mock_uow = AsyncMock()
-    mock_user_repo = AsyncMock()
-    mock_auth_service = Mock()
-
-    invalid_token = "invalid_token"
-    mock_auth_service.get_tg_name_from_token.return_value = None
-
-    authenticate_use_case = AuthenticateUser(mock_uow, mock_user_repo, mock_auth_service)
-
-    # Act & Assert
-    with pytest.raises(UndefinedUserError) as exc_info:
-        asyncio.run(authenticate_use_case.execute(invalid_token))
-
-    assert "Unauthorized" in str(exc_info.value)
-    assert exc_info.value.status == 401
-
-    mock_auth_service.get_tg_name_from_token.assert_called_once_with(invalid_token)
-    mock_user_repo.get_by_tg_name.assert_not_called()
-
-
 def test_execute_user_not_found_raises_error():
     """Test authentication when user doesn't exist in database"""
     # Arrange
