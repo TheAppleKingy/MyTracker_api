@@ -23,4 +23,7 @@ class JWTAuthenticationService(AuthenticationServiceInterface):
         return payload.get("tg_name")
 
     def decode(self, token: str) -> dict:
-        return jwt.decode(token, self._secret, ["HS256"])
+        payload = jwt.decode(token, self._secret, ["HS256"])
+        if not payload.get("exp", None):
+            raise JWTUnauthorizedError("Untracked expiration of token", status=401)
+        return payload
