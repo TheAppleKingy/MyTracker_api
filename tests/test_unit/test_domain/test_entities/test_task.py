@@ -3,7 +3,7 @@ import pytest
 from datetime import datetime, timedelta, timezone
 
 from src.domain.entities import Task
-from src.domain.entities.exceptions import UnfifnishedTaskError, HasNoDirectAccessError
+from src.domain.entities.exceptions import UnfinishedTaskError, HasNoDirectAccessError
 
 
 pytest_mark_asyncio = pytest.mark.asyncio
@@ -202,7 +202,7 @@ def test_mark_as_done_failure_unfinished_subtasks():
     # child2 is not done
 
     # Parent should not be able to mark as done
-    with pytest.raises(UnfifnishedTaskError, match="Unable finish task while subtasks not fininshed"):
+    with pytest.raises(UnfinishedTaskError, match="Unable finish task while subtasks not fininshed"):
         parent.mark_as_done()
 
     assert not parent.is_done

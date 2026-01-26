@@ -25,11 +25,9 @@ class RegisterUser:
         self,
         uow: UoWInterface,
         user_repo: UserRepositoryInterface,
-        auth_service: AuthenticationServiceInterface
     ):
         self._uow = uow
         self._user_repo = user_repo
-        self._auth_service = auth_service
 
     async def execute(self, dto: RegisterUserDTO) -> str:
         async with self._uow as uow:

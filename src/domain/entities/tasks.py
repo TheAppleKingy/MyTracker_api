@@ -4,7 +4,7 @@ from collections import deque
 from dataclasses import dataclass, field
 
 from .exceptions import (
-    UnfifnishedTaskError,
+    UnfinishedTaskError,
     HasNoDirectAccessError,
 )
 
@@ -56,7 +56,7 @@ class Task:
         while queue:
             current = queue.popleft()
             if not current.is_done:
-                raise UnfifnishedTaskError("Unable finish task while subtasks not fininshed")
+                raise UnfinishedTaskError("Unable finish task while subtasks not fininshed")
             queue.extend(current.subtasks)
         self._pass_date = datetime.now(timezone.utc)
 
