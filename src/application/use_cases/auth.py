@@ -53,8 +53,6 @@ class AuthenticateUser:
         if not token:
             raise UndefinedUserError("Unauthorized", status=401)
         tg_name = self._auth_service.get_tg_name_from_token(token)
-        if not tg_name:
-            raise UndefinedUserError("Unauthorized", status=401)
         async with self._uow:
             user = await self._user_repo.get_by_tg_name(tg_name)
             if not user:
