@@ -7,3 +7,7 @@ class InvalidDeadlineError(DomainError):
 
 class MaxDepthError(DomainError):
     pass
+
+
+class ParentFinishedError(DomainError):
+    pass

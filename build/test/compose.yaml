@@ -1,0 +1,12 @@
+services:
+  test_tracker_app:
+    build:
+      context: ../../
+      dockerfile: build/test/dockerfile
+    env_file:
+      - .env.test
+
+  test_tracker_db:
+    image: postgres:18-alpine
+    env_file:
+      - .env.test

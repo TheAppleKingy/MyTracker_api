@@ -8,5 +8,4 @@ users = Table(
     "users", metadata,
     id_(),
     Column("tg_name", String, unique=True, index=True, nullable=False),
-    Column("password", String, nullable=False)
 )

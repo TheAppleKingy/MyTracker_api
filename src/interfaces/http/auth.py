@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 from dishka.integrations.fastapi import FromDishka, DishkaRoute
 
-from src.application.dto.users import LoginUserDTO, RegisterUserDTO
-from src.application.use_cases import RegisterUser, LoginUser
+from src.application.dto.users import RegisterUserDTO
+from src.application.use_cases import RegisterUser
 
 auth_router = APIRouter(
     prefix='/auth',
@@ -16,12 +16,4 @@ async def register_user(
     dto: RegisterUserDTO,
     use_case: FromDishka[RegisterUser]
 ):
-    return {"token": await use_case.execute(dto)}
-
-
-@auth_router.post("/login")
-async def login_user(
-    dto: LoginUserDTO,
-    use_case: FromDishka[LoginUser]
-):
-    return {"token": await use_case.execute(dto)}
+    return await use_case.execute(dto)

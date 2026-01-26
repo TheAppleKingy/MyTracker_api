@@ -56,7 +56,7 @@ class CreateTask(BaseTaskUseCase):
             if dto.parent_id:
                 parent = await self._task_repo.get_with_parents(dto.parent_id)
                 if not parent:
-                    raise UndefinedTaskError("Unable to bind parent task: task does not exist")
+                    raise UndefinedTaskError("Unable to bind to unexistent parent task")
             manager = TaskProducerService()
             created = manager.create_task(
                 dto.title,
@@ -71,7 +71,7 @@ class CreateTask(BaseTaskUseCase):
 class UpdateTask(BaseTaskUseCase):
     async def execute(self, task_id: int, dto: TaskUpdateDTO):
         async with self._uow:
-            task = await self._task_repo.get_by_id(task_id)
+            task = await self._task_repo.get_with_parent_and_subs(task_id)
             if dto.title:
                 task.title = dto.title
             if dto.description:

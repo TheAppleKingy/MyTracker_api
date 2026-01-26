@@ -76,16 +76,10 @@ class ServiceProvider(Provider):
     def get_auth_service(self, conf: AppConfig) -> AuthenticationServiceInterface:
         return JWTAuthenticationService(conf.token_expire_time, conf.secret)
 
-    @provide
-    def get_password_service(self) -> PasswordServiceInterface:
-        return PasswordService()
-
 
 use_case_provider = Provider(scope=Scope.REQUEST)
 use_case_provider.provide_all(
-    LoginUser,
     RegisterUser,
-    ChangePassword,
     AuthenticateUser,
     ShowTask,
     ShowActiveTasks,

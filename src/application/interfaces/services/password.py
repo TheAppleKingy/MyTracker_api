@@ -1,6 +1,0 @@
-from typing import Protocol
-
-
-class PasswordServiceInterface(Protocol):
-    def hash_password(self, raw_password: str) -> str: ...
-    def check_password(self, hashed: str, checking: str) -> bool: ...

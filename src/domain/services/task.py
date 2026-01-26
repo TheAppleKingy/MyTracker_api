@@ -1,10 +1,12 @@
 from datetime import datetime, timezone
 from typing import Optional
+from collections import deque
 
 from src.domain.entities import Task
 from src.domain.services.exceptions import (
     MaxDepthError,
-    InvalidDeadlineError
+    InvalidDeadlineError,
+    ParentFinishedError
 )
 
 MAX_DEPTH = 5
@@ -29,9 +31,14 @@ class TaskProducerService(BaseTaskManagerService):
         parent: Optional[Task] = None,
         description: Optional[str] = None
     ):
+        self._validate_deadline(deadline)
         if parent:
             self._validate_depth(parent)
-        self._validate_deadline(deadline)
+            if parent.is_done:
+                raise ParentFinishedError("Unable to create subtasks of fnished parent task")
+            if parent.deadline < deadline:
+                raise InvalidDeadlineError(
+                    "Deadline of creating task cannot be more than deadline of parent task")
         return Task(
             title,
             deadline,
@@ -44,6 +51,25 @@ class TaskProducerService(BaseTaskManagerService):
 class TaskPlannerManagerService(BaseTaskManagerService):
     def __init__(self, task: Task):
         self._task = task
+
+    def _validate_subs_deadlines(self, new_deadline: datetime):
+        queue: deque[Task] = deque(self._task.subtasks)
+        while queue:
+            current = queue.popleft()
+            if current.deadline > new_deadline:
+                raise InvalidDeadlineError(
+                    "Deadline of creating task cannot be less than deadline of subtasks")
+            queue.extend(current.subtasks)
+
+    def _validate_parent_deadline(self, new_deadline: datetime):
+        if self._task.parent.deadline < new_deadline:
+            raise InvalidDeadlineError(
+                "Deadline of creating task cannot be more than deadline of parent task")
+
+    def _validate_deadline(self, to_set: datetime):
+        super()._validate_deadline(to_set)
+        self._validate_parent_deadline(to_set)
+        self._validate_subs_deadlines(to_set)
 
     def set_deadline(self, new_dealine: datetime):
         self._validate_deadline(new_dealine)

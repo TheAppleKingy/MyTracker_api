@@ -1,10 +1,9 @@
+include build/test/.env.test
+
 MIGRATION_COMPOSE=build/migrations/compose.yaml
-
 DEV_COMPOSE=build/dev/compose.yaml
-
 PROD_COMPOSE=build/prod/compose.yaml
-
-TESTS_COMPOSE=build/tests/compose.yaml
+TESTS_COMPOSE=build/test/compose.yaml
 TESTS_PATH=tests
 INTEGRATION_TESTS_PATH=${TESTS_PATH}/test_integration
 UNIT_TESTS_PATH=${TESTS_PATH}/test_unit
@@ -51,3 +50,21 @@ tracker.dev.build.start: tracker.dev.build
 
 tracker.dev.down:
 	@docker compose -f ${DEV_COMPOSE} down
+
+#-------------------------------------------------------------------------------------------------
+
+tracker.test.build:
+	@docker compose -f ${TESTS_COMPOSE} build
+
+tracker.test_db.start:
+	@docker compose -f ${TESTS_COMPOSE} up -d test_tracker_db
+	@until docker compose -f ${TESTS_COMPOSE} exec test_tracker_db pg_isready -U ${POSTGRES_USER}; do sleep 1; done
+
+tracker.test.integration: tracker.test.build tracker.test_db.start
+	@docker compose -f ${TESTS_COMPOSE} run --rm test_tracker_app pytest -v ${INTEGRATION_TESTS_PATH}; docker compose -f ${TESTS_COMPOSE} down
+
+tracker.test.unit: tracker.test.build
+	@docker compose -f ${TESTS_COMPOSE} run --rm test_tracker_app pytest -v ${UNIT_TESTS_PATH}
+
+tracker.test.full: tracker.test.build tracker.test_db.start
+	@docker compose -f ${TESTS_COMPOSE} run --rm test_tracker_app pytest -v ${TESTS_PATH}; docker compose -f ${TESTS_COMPOSE} down

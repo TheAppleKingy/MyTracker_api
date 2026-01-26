@@ -32,7 +32,7 @@ class Task:
 
     @property
     def is_root(self):
-        return not bool(self.task_id)
+        return not bool(self.parent_id)
 
     @property
     def is_done(self):

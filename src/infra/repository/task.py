@@ -23,6 +23,14 @@ class AlchemyTaskRepository(TaskRepositoryInterface):
             )
         )
 
+    async def get_with_parent_and_subs(self, task_id: int) -> Optional[Task]:
+        return await self._session.scalar(
+            select(Task).where(Task.id == task_id).options(
+                selectinload(Task.parent),
+                selectinload(Task.subtasks, recursion_depth=MAX_DEPTH-1)
+            )
+        )
+
     async def get_active_tasks(self, user_id: int) -> list[Task]:
         res = await self._session.scalars(
             select(Task).where(
