@@ -13,62 +13,29 @@ This repository contains the backend part of the application.
 ## ⚙️ Install
 
 Before running the app, set the following environment variables:
-
-### Core & Celery
-
-| Variable               | Description                                 |
-|------------------------|---------------------------------------------|
-| `CELERY_WORKERS`       | Number of CPU cores Celery can use          |
-| `TASK_SERVICE_QUEUE`   | Name of the Celery task queue               |
-| `CELERY_BROKER_URL`    | URL of the message broker (usually Redis)   |
-
-### Redis
-
-| Variable         | Description                      |
-|------------------|----------------------------------|
-| `REDIS_URL`      | Redis connection URL             |
-| `REDIS_PASSWORD` | Redis connection password        |
-
 ### JWT Auth
 
 | Variable             | Description                                                  |
 |----------------------|--------------------------------------------------------------|
 | `SECRET_KEY`         | Secret key to sign JWT tokens                                |
 | `TOKEN_EXPIRE_TIME`  | Token expiration time (in seconds)                           |
-| `URL_EXPIRE_TIME`    | Lifetime of confirmation URLs (in seconds)                   |
-| `TOKEN_SALT`         | Salt to strengthen token signatures                          |
+
 
 ### PostgreSQL
 
 | Variable                   | Description                                                           |
 |----------------------------|-----------------------------------------------------------------------|
-| `DATABASE_URL`             | Should start with `postgresql+asyncpg://...`                          |
-| `FORMATTED_DATABASE_URL`   | Same as above but starts with `postgresql://...`, used in testing     |
 | `POSTGRES_DB`              | Name of the main database                                             |
 | `POSTGRES_USER`            | PostgreSQL username                                                   |
 | `POSTGRES_PASSWORD`        | PostgreSQL password                                                   |
-
-### Testing
-
-| Variable                       | Description                                            |
-|--------------------------------|--------------------------------------------------------|
-| `TEST_DB_NAME`                 | Test database name                                     |
-| `TEST_DATABASE_URL`            | Like `DATABASE_URL` but for testing                   |
-| `FORMATTED_TEST_DATABASE_URL`  | Same as above without `+asyncpg`                      |
-
-### Email (SMTP)
-
-| Variable              | Description                          |
-|-----------------------|--------------------------------------|
-| `EMAIL_HOST_USER`     | Sender email address                 |
-| `EMAIL_HOST_PASSWORD` | SMTP password for the sender account |
+| `POSTGRES_HOST`            | Hostname of container with database. If was not specified manually just service name from compose.yaml
 
 ---
 
-To start the backend app:
+To build and start the backend app:
 
 ```bash
-docker compose up --build
+make tracker.prod.build.up
 ```
 
 >This backend is used by the [MyTracker_bot](https://github.com/TheAppleKingy/MyTracker_bot).  
@@ -91,12 +58,10 @@ Swagger documentation is available at:
 
 The API provides basic authentication features:
 
-- Registration (via email confirmation)
-- Login / Logout
-- Change password
+- Registration
+>This endpoint just save user by provided telegram name. Does not require password. Each request protected by jwt. Client should has the same secret as this backend to be accessed. It is assumed that client provides to API one-time(has very short lifetime) jwt token as cookie named "token". For dev you can create token with long lifetime or even without expiration time.    
 
->Every new registration requires email confirmation.  
->Refer to Swagger UI for request details.
+**Refer to Swagger UI for request details.**
 
 ---
 
@@ -109,14 +74,16 @@ The backend authenticates the user and returns JSON responses.
 
 | Method | Endpoint                        | Description                                           |
 |--------|----------------------------------|-------------------------------------------------------|
-| GET    | `/api/bot/my_tasks`             | Returns full task tree for the user                  |
-| GET    | `/api/bot/my_tasks/{id}`        | Returns task tree starting from a specific task      |
-| POST   | `/api/bot/create_task`          | Creates a new task and returns its data              |
-| PATCH  | `/api/bot/update_task/{id}`     | Updates one or more fields of the specified task     |
-| PATCH  | `/api/bot/finish_task/{id}`     | Marks the task as completed                          |
-| DELETE | `/api/bot/delete_task/{id}`     | Deletes the specified task                           |
+| GET    | `/api/v1/tasks`             | Returns active tasks data(not finished yet)                  |
+| GET    | `/api/v1/tasks/finished`        | Returns finished tasks data      |
+| GET    | `/api/v1/tasks/{task_id}`        | Returns task data      |
+| POST   | `/api/v1/tasks`          | Creates a new task and returns its data              |
+| PATCH  | `/api/v1/tasks/{task_id}`     | Updates one or more fields of the specified task     |
+| PATCH  | `/api/v1/tasks/{task_id}/finish`     | Marks the task as completed                          |
+| PATCH  | `/api/v1/tasks/{task_id}/finish/force`     | Marks the task and all subtasks as completed                          |
+| DELETE | `/api/v1/tasks/{task_id}`     | Deletes the specified task with all subtasks                           |
 
-> 🧠 User-task ownership is validated on the bot side.
+**Refer to Swagger UI for request details.**
 
 ---
 
@@ -124,8 +91,6 @@ The backend authenticates the user and returns JSON responses.
 
 - **FastAPI** – web framework  
 - **PostgreSQL** – database  
-- **Redis** – task broker  
-- **Celery** – background task queue  
 - **SQLAlchemy** – ORM  
 - **Alembic** – DB migrations  
 - **Uvicorn** – ASGI server  

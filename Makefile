@@ -51,6 +51,22 @@ tracker.dev.build.start: tracker.dev.build
 tracker.dev.down:
 	@docker compose -f ${DEV_COMPOSE} down
 
+#--------------------------------------------------------------------------------------
+
+tracker.prod.build: tracker.network.setup
+	@docker compose -f ${PROD_COMPOSE} build
+
+
+tracker.prod.start:
+	@docker compose -f ${PROD_COMPOSE} up
+
+
+tracker.prod.build.start: tracker.prod.build
+	@docker compose -f ${PROD_COMPOSE} up
+
+tracker.prod.down:
+	@docker compose -f ${PROD_COMPOSE} down
+
 #-------------------------------------------------------------------------------------------------
 
 tracker.test.build:
