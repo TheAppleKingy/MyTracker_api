@@ -12,7 +12,9 @@ class AlchemyUserRepository(UserRepositoryInterface):
         self._session = session
 
     async def get_by_tg_name(self, tg_name: str) -> Optional[User]:
-        return await self._session.scalar(select(User).where(User.tg_name == tg_name))
+        return await self._session.scalar(select(User).where(User.tg_name == tg_name))  # type: ignore
 
     async def count_by_tg_name(self, tg_name: str) -> int:
-        return await self._session.scalar(select(func.count(User.id)).where(User.tg_name == tg_name)) or 0
+        return await self._session.scalar(
+            select(func.count(User.id)).where(User.tg_name == tg_name)  # type: ignore
+        ) or 0

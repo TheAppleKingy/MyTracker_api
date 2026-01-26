@@ -62,7 +62,7 @@ class TaskPlannerManagerService(BaseTaskManagerService):
             queue.extend(current.subtasks)
 
     def _validate_parent_deadline(self, new_deadline: datetime):
-        if self._task.parent.deadline < new_deadline:
+        if self._task.parent.deadline < new_deadline:  # type: ignore
             raise InvalidDeadlineError(
                 "Deadline of creating task cannot be more than deadline of parent task")
 

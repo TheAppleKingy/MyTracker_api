@@ -7,7 +7,7 @@ from pydantic import BaseModel
 class TaskCreateDTO(BaseModel):
     title: str
     description: Optional[str] = None
-    deadline: Optional[datetime] = None
+    deadline: datetime
     parent_id: Optional[int] = None
 
 

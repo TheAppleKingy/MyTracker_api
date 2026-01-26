@@ -29,7 +29,7 @@ class RegisterUser:
         self._uow = uow
         self._user_repo = user_repo
 
-    async def execute(self, dto: RegisterUserDTO) -> str:
+    async def execute(self, dto: RegisterUserDTO):
         async with self._uow as uow:
             count = await self._user_repo.count_by_tg_name(dto.tg_name)
             if count:
