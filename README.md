@@ -59,7 +59,7 @@ Swagger documentation is available at:
 The API provides basic authentication features:
 
 - Registration
->This endpoint just save user by provided telegram name. Does not require password. Each request protected by jwt. Client should has the same secret as this backend to be accessed. It is assumed that client provides to API one-time(has very short lifetime) jwt token as cookie named "token". For dev you can create token with long lifetime or even without expiration time.    
+>This endpoint just save user by provided telegram name. Does not require password. Each request protected by jwt. Client should has the same secret as this backend to be accessed. It is assumed that client provides to API one-time(has very short lifetime) jwt token as cookie named "token". For dev create token with long lifetime.
 
 **Refer to Swagger UI for request details.**
 
