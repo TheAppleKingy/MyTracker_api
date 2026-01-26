@@ -1,0 +1,16 @@
+services:
+  tracker_migrations:
+    build:
+      context: ../../
+      dockerfile: build/migrations/dockerfile
+    env_file:
+      - .env
+    volumes:
+      - ./alembic:/migrations/alembic
+      - ./alembic.ini:/migrations/alembic.ini
+    networks:
+      - tracker_migrations_network
+
+networks:
+  tracker_migrations_network:
+    external: true

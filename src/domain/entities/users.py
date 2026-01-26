@@ -1,24 +1,9 @@
-from typing import TYPE_CHECKING
-
-from sqlalchemy import String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from .tasks import Base
+from dataclasses import dataclass, field
+from .tasks import Task
 
 
-if TYPE_CHECKING:
-    from .tasks import Task
-
-
-class User(Base):
-    __tablename__ = 'users'
-    tg_name: Mapped[str] = mapped_column(
-        String(50), unique=True)
-    email: Mapped[str] = mapped_column(
-        String(50), unique=True)
-    password: Mapped[str] = mapped_column()
-    first_name: Mapped[str] = mapped_column(String(100), nullable=True)
-    last_name: Mapped[str] = mapped_column(String(100), nullable=True)
-    is_active: Mapped[bool] = mapped_column(default=False)
-    tasks: Mapped[list['Task']] = relationship(
-        back_populates='user', cascade='all, delete-orphan', lazy='selectin')
+@dataclass
+class User:
+    tg_name: str
+    id: int = field(default=None, init=False)
+    tasks: list[Task] = field(default_factory=list, init=False)

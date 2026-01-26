@@ -1,0 +1,6 @@
+from typing import Protocol, Optional
+
+
+class AuthenticationServiceInterface(Protocol):
+    def get_tg_name_from_token(self, token: str) -> Optional[str]: ...
+    def decode(self, token: str) -> dict: ...
