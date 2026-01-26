@@ -13,6 +13,6 @@ RUN poetry config virtualenvs.create false && \
     poetry install --no-root --no-interaction --no-ansi
 
 COPY ./src/infra/db/tables ./src/infra/db/tables
-COPY ./src/infra/configs ./src/infra/configs
+COPY ./src/infra/configs.py ./src/infra/configs.py
 COPY ./build/migrations/alembic ./src/alembic
 COPY ./build/migrations/alembic.ini ./src/alembic.ini
