@@ -9,38 +9,34 @@
 # from sqlalchemy.orm import selectinload
 # from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncEngine, AsyncSession
 
-# from config import FORMATTED_DATABASE_URL, TEST_DATABASE_URL
-# from infra.db.tables.base import Base
-# from domain.entities.users import User
-# from domain.entities.tasks import Task
-# from infra.security.password_utils import hash_password
-# from infra.db.repository.factories import UserRepoFactory, TaskRepoFactory
+# from src.infra.configs import DBConfig
+# from src.infra.db.tables.base import metadata
+# from src.domain.entities import User, Task
 
-
-# test_db_name = os.getenv('TEST_DB_NAME')
-# init_test_query = f"CREATE DATABASE {test_db_name}"
-# close_test_query = f"DROP DATABASE IF EXISTS {test_db_name}"
+# db_conf = DBConfig()
+# init_test_query = f"CREATE DATABASE {db_conf.postgres_db}"
+# close_test_query = f"DROP DATABASE IF EXISTS {db_conf.postgres_db}"
 
 
 # @pytest_asyncio.fixture(scope="session", autouse=True)
 # async def prepare_database():
-#     admin_conn = await asyncpg.connect(FORMATTED_DATABASE_URL)
-#     await admin_conn.execute(f"DROP DATABASE IF EXISTS {test_db_name} WITH (FORCE)")
-#     await admin_conn.execute(f"CREATE DATABASE {test_db_name}")
+#     admin_conn = await asyncpg.connect(db_conf.formatted_conn_url)
+#     await admin_conn.execute(f"DROP DATABASE IF EXISTS {db_conf.postgres_db} WITH (FORCE)")
+#     await admin_conn.execute(f"CREATE DATABASE {db_conf.postgres_db}")
 #     await admin_conn.close()
-#     engine = create_async_engine(TEST_DATABASE_URL, echo=False)
+#     engine = create_async_engine(db_conf.conn_url, echo=False)
 #     async with engine.begin() as conn:
-#         await conn.run_sync(Base.metadata.create_all)
+#         await conn.run_sync(metadata.create_all())
 #     yield
 #     await engine.dispose()
-#     admin_conn = await asyncpg.connect(FORMATTED_DATABASE_URL)
-#     await admin_conn.execute(f"DROP DATABASE IF EXISTS {test_db_name} WITH (FORCE)")
+#     admin_conn = await asyncpg.connect(db_conf.formatted_conn_url)
+#     await admin_conn.execute(f"DROP DATABASE IF EXISTS {db_conf.postgres_db} WITH (FORCE)")
 #     await admin_conn.close()
 
 
 # @pytest_asyncio.fixture
 # async def engine():
-#     engine = create_async_engine(TEST_DATABASE_URL, echo=False)
+#     engine = create_async_engine(db_conf.conn_url, echo=False)
 #     yield engine
 #     await engine.dispose()
 
@@ -49,7 +45,7 @@
 # async def session(engine: AsyncEngine):
 #     session_maker = async_sessionmaker(bind=engine, expire_on_commit=False)
 #     async with session_maker() as session:
-#         for table in reversed(Base.metadata.sorted_tables):
+#         for table in reversed(metadata.sorted_tables):
 #             await session.execute(table.delete())
 #         await session.commit()
 #         yield session
@@ -58,19 +54,15 @@
 
 # @pytest_asyncio.fixture(autouse=True)
 # async def setup(session: AsyncSession):
-#     admin = User(tg_name='admin', email='admin@mail.ru',
-#                  password=hash_password('test_password'), is_active=True)
-#     simple_user = User(tg_name='simple_user', email='simple@mail.ru',
-#                        password=hash_password('test_password'), is_active=True)
-#     session.add_all([admin, simple_user])
+#     user = User(tg_name='simple_user')
+#     session.add(user)
 #     await session.flush()
-#     task1 = Task(title='t1', description='t1',
-#                  task_id=None, user_id=simple_user.id, creation_date=datetime.now(timezone.utc), deadline=datetime.now(timezone.utc)+timedelta(days=7))
+#     task1 = Task(title='t1', description='t1', user_id=user.id,
+#                  deadline=datetime.now(timezone.utc)+timedelta(days=7))
+#     sub1 = Task(title='s1', description='s1', parent=task1, user_id=user.id,
+#                 deadline=datetime.now(timezone.utc)+timedelta(days=6))
 #     session.add(task1)
-#     await session.flush()
-#     sub1 = Task(title='s1', description='s1',
-#                 task_id=task1.id, user_id=simple_user.id, creation_date=datetime.now(timezone.utc), deadline=datetime.now(timezone.utc)+timedelta(days=7))
-#     session.add_all([task1, sub1])
+#     user.tasks = [task1]
 #     await session.commit()
 
 

@@ -33,7 +33,7 @@ class DBProvider(Provider):
 
     @provide
     def get_engine(self, config: DBConfig) -> AsyncEngine:
-        return create_async_engine(config.conn_url())
+        return create_async_engine(config.conn_url)
 
     @provide
     def get_sessionmaker(self, engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:
