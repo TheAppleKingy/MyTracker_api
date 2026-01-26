@@ -11,10 +11,8 @@ from src.application.interfaces.services import AuthenticationServiceInterface
 class JWTAuthenticationService(AuthenticationServiceInterface):
     def __init__(
         self,
-        exp_time: int,
         secret: str
     ):
-        self._exp = exp_time
         self._secret = secret
 
     def get_tg_name_from_token(self, token: str) -> Optional[str]:

@@ -17,5 +17,4 @@ class DBConfig(BaseSettings):
 
 
 class AppConfig(BaseSettings):
-    token_expire_time: int
     secret: str
