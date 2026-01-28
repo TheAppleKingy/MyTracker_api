@@ -9,7 +9,7 @@ tasks = Table(
     "tasks", metadata,
     id_(),
     Column("title", String, nullable=False),
-    Column("description", String, nullable=True),
+    Column("description", String, nullable=False),
     Column("deadline", DateTime(timezone=True), nullable=False),
     Column("user_id", ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
     Column("creation_date", DateTime(timezone=True), nullable=False),

@@ -80,6 +80,7 @@ class ServiceProvider(Provider):
 use_case_provider = Provider(scope=Scope.REQUEST)
 use_case_provider.provide_all(
     RegisterUser,
+    CheckUserExists,
     AuthenticateUser,
     ShowTask,
     ShowActiveTasks,
