@@ -28,8 +28,8 @@ class TaskProducerService(BaseTaskManagerService):
         title: str,
         deadline: datetime,
         user_id: int,
+        description: str,
         parent: Optional[Task] = None,
-        description: Optional[str] = None
     ):
         self._validate_deadline(deadline)
         if parent:

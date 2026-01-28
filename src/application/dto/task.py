@@ -7,7 +7,7 @@ from src.domain.entities import Task
 
 class TaskCreateDTO(BaseModel):
     title: str
-    description: Optional[str] = None
+    description: str
     deadline: datetime
     parent_id: Optional[int] = None
 
