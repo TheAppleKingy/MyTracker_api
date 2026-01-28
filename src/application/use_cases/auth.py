@@ -16,7 +16,8 @@ from src.logger import logger
 __all__ = [
     "RegisterUser",
     "AuthenticateUser",
-    "AuthenticateTaskOwner"
+    "AuthenticateTaskOwner",
+    "CheckUserExists"
 ]
 
 
@@ -36,6 +37,20 @@ class RegisterUser:
                 raise UserExistsError("User with this telegram name already exists")
             registered = User(dto.tg_name)
             uow.save(registered)
+
+
+class CheckUserExists:
+    def __init__(
+        self,
+        uow: UoWInterface,
+        user_repo: UserRepositoryInterface,
+    ):
+        self._uow = uow
+        self._user_repo = user_repo
+
+    async def execute(self, tg_name: str) -> bool:  # type: ignore
+        async with self._uow:
+            return bool(await self._user_repo.count_by_tg_name(tg_name))
 
 
 class AuthenticateUser:

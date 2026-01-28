@@ -6,7 +6,8 @@ from src.application.dto.task import (
     TaskCreateDTO,
     TaskUpdateDTO,
     TaskViewForUserDTO,
-    TaskViewDTO
+    TaskViewDTO,
+    PaginatedTasksDTO
 )
 from src.domain.types import AuthenticatedUserId, AuthenticatedOwnerId
 
@@ -22,16 +23,26 @@ task_router = APIRouter(
 async def get_active_tasks(
     user_id: FromDishka[AuthenticatedUserId],
     use_case: FromDishka[ShowActiveTasks]
-) -> list[TaskViewDTO]:
-    return await use_case.execute(user_id)
+) -> PaginatedTasksDTO:
+    prev_page, next_page, tasks = await use_case.execute(user_id)
+    return PaginatedTasksDTO(
+        tasks=[TaskViewDTO.model_validate(task) for task in tasks],
+        prev_page=prev_page,
+        next_page=next_page
+    )
 
 
 @task_router.get('/finished')
 async def get_finished_tasks(
     user_id: FromDishka[AuthenticatedUserId],
     use_case: FromDishka[ShowFinishedTasks]
-) -> list[TaskViewDTO]:
-    return await use_case.execute(user_id)
+) -> PaginatedTasksDTO:
+    prev_page, next_page, tasks = await use_case.execute(user_id)
+    return PaginatedTasksDTO(
+        tasks=[TaskViewDTO.model_validate(task) for task in tasks],
+        prev_page=prev_page,
+        next_page=next_page
+    )
 
 
 @task_router.get('/{task_id}')
@@ -48,7 +59,7 @@ async def create_task(
     user_id: FromDishka[AuthenticatedUserId],
     use_case: FromDishka[CreateTask],
     dto: TaskCreateDTO
-):
+) -> TaskViewDTO:
     return await use_case.execute(user_id, dto)
 
 
