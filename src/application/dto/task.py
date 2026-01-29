@@ -26,7 +26,6 @@ class TaskViewDTO(BaseModel):
     deadline: datetime
     pass_date: Optional[datetime] = None
     parent_id: Optional[int] = None
-    subtasks: list["TaskPreviewDTO"]
 
     model_config = ConfigDict(from_attributes=True)
 

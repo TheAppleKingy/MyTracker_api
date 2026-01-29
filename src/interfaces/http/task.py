@@ -10,6 +10,7 @@ from src.application.dto.task import (
     PaginatedTasksDTO
 )
 from src.domain.types import AuthenticatedUserId, AuthenticatedOwnerId
+from src.logger import logger
 
 
 task_router = APIRouter(
@@ -50,7 +51,7 @@ async def get_finished_tasks(
 
 
 @task_router.get('/{task_id}')
-async def get_user_task_tree(
+async def get_user_task(
     task_id: int,
     user_id: FromDishka[AuthenticatedOwnerId],
     use_case: FromDishka[ShowTask]

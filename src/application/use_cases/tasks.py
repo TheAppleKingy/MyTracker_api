@@ -34,7 +34,7 @@ class BaseTaskUseCase:
 class ShowTask(BaseTaskUseCase):
     async def execute(self, task_id: int):
         async with self._uow:
-            return await self._task_repo.get_task_with_subtasks(task_id)
+            return await self._task_repo.get_by_id(task_id)
 
 
 class ShowActiveTasks(BaseTaskUseCase):
@@ -43,7 +43,7 @@ class ShowActiveTasks(BaseTaskUseCase):
         user_id: AuthenticatedUserId,
         page: int = 1,
         size: int = 5
-    ) -> tuple[int | None, int | None, list[Task]]:  # type: ignore
+    ) -> tuple[int, int, list[Task]]:  # type: ignore
         async with self._uow:
             return await self._task_repo.get_active_tasks(user_id, page=page, size=size)
 
@@ -54,7 +54,7 @@ class ShowFinishedTasks(BaseTaskUseCase):
         user_id: AuthenticatedUserId,
         page: int = 1,
         size: int = 5
-    ) -> tuple[int | None, int | None, list[Task]]:  # type: ignore
+    ) -> tuple[int, int, list[Task]]:  # type: ignore
         async with self._uow:
             return await self._task_repo.get_finished_tasks(user_id, page=page, size=size)
 
@@ -72,8 +72,8 @@ class CreateTask(BaseTaskUseCase):
                 dto.title,
                 dto.deadline,
                 user_id,
+                dto.description,
                 parent,
-                dto.description
             )
             uow.save(created)
         return created

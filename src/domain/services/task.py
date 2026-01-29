@@ -1,3 +1,4 @@
+from src.logger import logger
 from datetime import datetime, timezone
 from typing import Optional
 from collections import deque

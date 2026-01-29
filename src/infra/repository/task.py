@@ -37,26 +37,25 @@ class AlchemyTaskRepository(TaskRepositoryInterface):
             .offset((page - 1) * size)
             .limit(size + 1)
             .order_by(desc(Task.creation_date))  # type: ignore
-            .options(selectinload(Task.subtasks).load_only(Task.id, Task.title))  # type: ignore
         )
 
     def _build_paginated_result(self, tasks: list[Task], page: int, size: int):
         has_next = len(tasks) > size
-        return page - 1 if page > 1 and tasks else None, page + 1 if has_next else None, tasks[:-1] if has_next else tasks
+        return page - 1 if page > 1 and tasks else 0, page + 1 if has_next else 0, tasks[:-1] if has_next else tasks
 
-    async def get_active_tasks(self, user_id: int, page: int = 1, size: int = 5) -> tuple[Optional[int], Optional[int], list[Task]]:
+    async def get_active_tasks(self, user_id: int, page: int = 1, size: int = 5) -> tuple[int, int, list[Task]]:
         res = await self._session.scalars(self._pagination_query(page, size).where(
             Task.user_id == user_id, Task.parent_id == None, Task._pass_date == None  # type: ignore
         ))
         return self._build_paginated_result(res.all(), page, size)  # type: ignore
 
-    async def get_finished_tasks(self, user_id: int, page: int = 1, size: int = 5) -> tuple[Optional[int], Optional[int], list[Task]]:
+    async def get_finished_tasks(self, user_id: int, page: int = 1, size: int = 5) -> tuple[int, int, list[Task]]:
         res = await self._session.scalars(self._pagination_query(page, size).where(
             Task.user_id == user_id, Task.parent_id == None, Task._pass_date != None  # type: ignore
         ))
         return self._build_paginated_result(res.all(), page, size)  # type: ignore
 
-    async def get_subtasks(self, parent_id: int, page: int = 1, size: int = 5) -> tuple[Optional[int], Optional[int], list[Task]]:
+    async def get_subtasks(self, parent_id: int, page: int = 1, size: int = 5) -> tuple[int, int, list[Task]]:
         res = await self._session.scalars(self._pagination_query(page, size).where(
             Task.parent_id == parent_id  # type: ignore
         ))
