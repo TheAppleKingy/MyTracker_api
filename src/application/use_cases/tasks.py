@@ -1,3 +1,5 @@
+from typing import Literal
+
 from src.domain.entities import Task
 from src.domain.services import TaskProducerService, TaskPlannerManagerService
 from src.application.interfaces.uow import UoWInterface
@@ -11,13 +13,15 @@ from .exceptions import UndefinedTaskError, TaskAlreadyFinishedError
 
 __all__ = [
     "ShowTask",
-    "ShowActiveTasks",
-    "ShowFinishedTasks",
+    "ShowSubtasks",
+    "ShowTasks",
     "CreateTask",
     "UpdateTask",
     "DeleteTask",
     "FinishTask",
-    "ForceFinishTask"
+    "ForceFinishTask",
+    "CheckTaskActive",
+    "ShowParentId"
 ]
 
 
@@ -37,26 +41,28 @@ class ShowTask(BaseTaskUseCase):
             return await self._task_repo.get_by_id(task_id)
 
 
-class ShowActiveTasks(BaseTaskUseCase):
+class ShowSubtasks(BaseTaskUseCase):
+    async def execute(
+        self,
+        status: Literal["active", "finished"],
+        parent_id: int,
+        page: int = 1,
+        size: int = 5,
+    ) -> tuple[int, int, list[Task]]:  # type: ignore
+        async with self._uow:
+            return await self._task_repo.get_subtasks(parent_id, status, page=page, size=size)
+
+
+class ShowTasks(BaseTaskUseCase):
     async def execute(
         self,
         user_id: AuthenticatedUserId,
+        status: Literal["active", "finished"],
         page: int = 1,
         size: int = 5
     ) -> tuple[int, int, list[Task]]:  # type: ignore
         async with self._uow:
-            return await self._task_repo.get_active_tasks(user_id, page=page, size=size)
-
-
-class ShowFinishedTasks(BaseTaskUseCase):
-    async def execute(
-        self,
-        user_id: AuthenticatedUserId,
-        page: int = 1,
-        size: int = 5
-    ) -> tuple[int, int, list[Task]]:  # type: ignore
-        async with self._uow:
-            return await self._task_repo.get_finished_tasks(user_id, page=page, size=size)
+            return await self._task_repo.get_tasks(user_id, status, page=page, size=size)
 
 
 class CreateTask(BaseTaskUseCase):
@@ -90,6 +96,7 @@ class UpdateTask(BaseTaskUseCase):
             if dto.deadline:
                 manager = TaskPlannerManagerService(task)
                 manager.set_deadline(dto.deadline)
+        return task
 
 
 class DeleteTask(BaseTaskUseCase):
@@ -105,6 +112,20 @@ class FinishTask(BaseTaskUseCase):
             if task.is_done:
                 raise TaskAlreadyFinishedError("Task already finished")
             task.mark_as_done()
+
+
+class CheckTaskActive(BaseTaskUseCase):
+    async def execute(self, task_id: int):
+        async with self._uow:
+            task = await self._task_repo.get_by_id(task_id)
+            return not task.is_done
+
+
+class ShowParentId(BaseTaskUseCase):
+    async def execute(self, task_id: int):
+        async with self._uow:
+            task = await self._task_repo.get_by_id(task_id)
+            return task.parent_id
 
 
 class ForceFinishTask(BaseTaskUseCase):

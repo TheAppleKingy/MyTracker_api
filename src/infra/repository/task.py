@@ -1,4 +1,4 @@
-from typing import Optional, TypedDict
+from typing import Optional, Literal
 
 from sqlalchemy import select, delete, desc
 from sqlalchemy.orm import selectinload
@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.domain.entities import Task
 from src.domain.services import MAX_DEPTH
 from src.application.interfaces.repositories import TaskRepositoryInterface
+from src.logger import logger
 
 
 class AlchemyTaskRepository(TaskRepositoryInterface):
@@ -43,21 +44,30 @@ class AlchemyTaskRepository(TaskRepositoryInterface):
         has_next = len(tasks) > size
         return page - 1 if page > 1 and tasks else 0, page + 1 if has_next else 0, tasks[:-1] if has_next else tasks
 
-    async def get_active_tasks(self, user_id: int, page: int = 1, size: int = 5) -> tuple[int, int, list[Task]]:
+    async def get_tasks(
+        self,
+        user_id: int,
+        status: Literal["active", "finished"],
+        page: int = 1,
+        size: int = 5
+    ) -> tuple[int, int, list[Task]]:
         res = await self._session.scalars(self._pagination_query(page, size).where(
-            Task.user_id == user_id, Task.parent_id == None, Task._pass_date == None  # type: ignore
+            Task.user_id == user_id,
+            Task._pass_date == None if status == "active" else Task._pass_date != None,
+            Task.parent_id == None
         ))
-        return self._build_paginated_result(res.all(), page, size)  # type: ignore
+        return self._build_paginated_result(res.all(), page, size)
 
-    async def get_finished_tasks(self, user_id: int, page: int = 1, size: int = 5) -> tuple[int, int, list[Task]]:
+    async def get_subtasks(
+        self,
+        parent_id: int,
+        status: Literal["active", "finished"],
+        page: int = 1,
+        size: int = 5
+    ) -> tuple[int, int, list[Task]]:
         res = await self._session.scalars(self._pagination_query(page, size).where(
-            Task.user_id == user_id, Task.parent_id == None, Task._pass_date != None  # type: ignore
-        ))
-        return self._build_paginated_result(res.all(), page, size)  # type: ignore
-
-    async def get_subtasks(self, parent_id: int, page: int = 1, size: int = 5) -> tuple[int, int, list[Task]]:
-        res = await self._session.scalars(self._pagination_query(page, size).where(
-            Task.parent_id == parent_id  # type: ignore
+            Task.parent_id == parent_id,
+            Task._pass_date == None if status == "active" else Task._pass_date != None  # type: ignore
         ))
         return self._build_paginated_result(res.all(), page, size)  # type: ignore
 

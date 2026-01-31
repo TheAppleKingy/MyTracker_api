@@ -1,3 +1,5 @@
+from typing import Literal, Optional
+
 from fastapi import APIRouter, Query
 from dishka.integrations.fastapi import DishkaRoute, FromDishka
 
@@ -21,28 +23,14 @@ task_router = APIRouter(
 
 
 @task_router.get('')
-async def get_active_tasks(
+async def get_tasks(
     user_id: FromDishka[AuthenticatedUserId],
-    use_case: FromDishka[ShowActiveTasks],
+    use_case: FromDishka[ShowTasks],
     page: int = Query(ge=1, default=1),
-    size: int = Query(default=5)
+    size: int = Query(default=5),
+    status: Literal["active", "finished"] = Query(default="active")
 ) -> PaginatedTasksDTO:
-    prev_page, next_page, tasks = await use_case.execute(user_id, page=page, size=size)
-    return PaginatedTasksDTO(
-        tasks=[TaskViewDTO.model_validate(task) for task in tasks],
-        prev_page=prev_page,
-        next_page=next_page
-    )
-
-
-@task_router.get('/finished')
-async def get_finished_tasks(
-    user_id: FromDishka[AuthenticatedUserId],
-    use_case: FromDishka[ShowFinishedTasks],
-    page: int = Query(ge=1, default=1),
-    size: int = Query(default=5)
-) -> PaginatedTasksDTO:
-    prev_page, next_page, tasks = await use_case.execute(user_id, page=page, size=size)
+    prev_page, next_page, tasks = await use_case.execute(user_id, status, page=page, size=size)
     return PaginatedTasksDTO(
         tasks=[TaskViewDTO.model_validate(task) for task in tasks],
         prev_page=prev_page,
@@ -68,14 +56,31 @@ async def create_task(
     return await use_case.execute(user_id, dto)
 
 
+@task_router.get("/{task_id}/subtasks")
+async def get_subtasks(
+    task_id: int,
+    user_id: FromDishka[AuthenticatedOwnerId],
+    use_case: FromDishka[ShowSubtasks],
+    page: int = Query(ge=1, default=1),
+    size: int = Query(default=5),
+    status: Literal["active", "finished"] = Query(default="active")
+) -> PaginatedTasksDTO:
+    prev_page, next_page, tasks = await use_case.execute(status, task_id, page=page, size=size)
+    return PaginatedTasksDTO(
+        tasks=[TaskViewDTO.model_validate(task) for task in tasks],
+        prev_page=prev_page,
+        next_page=next_page
+    )
+
+
 @task_router.patch('/{task_id}')
 async def update_task(
     user_id: FromDishka[AuthenticatedOwnerId],
     task_id: int,
     use_case: FromDishka[UpdateTask],
     dto: TaskUpdateDTO
-):
-    await use_case.execute(task_id, dto)
+) -> TaskViewDTO:
+    return await use_case.execute(task_id, dto)
 
 
 @task_router.patch('/{task_id}/finish')
@@ -103,3 +108,21 @@ async def delete_task(
     task_id: int
 ):
     await use_case.execute(task_id)
+
+
+@task_router.get("/{task_id}/is_active")
+async def check_task_active(
+    task_id: int,
+    user_id: FromDishka[AuthenticatedOwnerId],
+    use_case: FromDishka[CheckTaskActive]
+) -> bool:
+    return await use_case.execute(task_id)
+
+
+@task_router.get("/{task_id}/parent")
+async def get_parent_id(
+    task_id: int,
+    user_id: FromDishka[AuthenticatedOwnerId],
+    use_case: FromDishka[ShowParentId]
+) -> Optional[int]:
+    return await use_case.execute(task_id)
