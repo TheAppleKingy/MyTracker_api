@@ -18,6 +18,14 @@ class TaskUpdateDTO(BaseModel):
     deadline: Optional[datetime] = None
 
 
+class TaskPreviewDTO(BaseModel):
+    id: int
+    title: str
+    parent_id: Optional[int] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class TaskViewDTO(BaseModel):
     id: int
     title: str
@@ -26,22 +34,14 @@ class TaskViewDTO(BaseModel):
     deadline: datetime
     pass_date: Optional[datetime] = None
     parent_id: Optional[int] = None
-    subtasks: list["TaskPreviewDTO"]
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class PaginatedTasksDTO(BaseModel):
-    tasks: list[TaskViewDTO]
     prev_page: Optional[int]
     next_page: Optional[int]
-
-
-class TaskPreviewDTO(BaseModel):
-    id: int
-    title: str
-
-    model_config = ConfigDict(from_attributes=True)
+    tasks: list[TaskPreviewDTO]
 
 
 class TaskViewForUserDTO(BaseModel):

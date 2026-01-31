@@ -1,4 +1,4 @@
-from typing import Protocol, Optional
+from typing import Protocol, Optional, Literal
 
 from src.domain.entities.tasks import Task
 
@@ -10,14 +10,21 @@ class TaskRepositoryInterface(Protocol):
 
     async def get_with_parent_and_subs(self, task_id: int) -> Task: ...
 
-    async def get_active_tasks(self, user_id: int, page: int = 1,
-                               size: int = 5) -> tuple[Optional[int], Optional[int], list[Task]]: ...
+    async def get_tasks(
+        self,
+        user_id: int,
+        status: Literal["active", "finished"],
+        page: int = 1,
+        size: int = 5
+    ) -> tuple[int, int, list[Task]]: ...
 
-    async def get_finished_tasks(self, user_id: int, page: int = 1,
-                                 size: int = 5) -> tuple[Optional[int], Optional[int], list[Task]]: ...
-
-    async def get_subtasks(self, parent_id: int, page: int = 1,
-                           size: int = 5) -> tuple[Optional[int], Optional[int], list[Task]]: ...
+    async def get_subtasks(
+        self,
+        parent_id: int,
+        status: Literal["active", "finished"],
+        page: int = 1,
+        size: int = 5
+    ) -> tuple[int, int, list[Task]]: ...
 
     async def get_task_with_subtasks(self, from_task_id: int) -> Task: ...
 

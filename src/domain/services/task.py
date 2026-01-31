@@ -1,3 +1,4 @@
+from src.logger import logger
 from datetime import datetime, timezone
 from typing import Optional
 from collections import deque
@@ -38,7 +39,7 @@ class TaskProducerService(BaseTaskManagerService):
                 raise ParentFinishedError("Unable to create subtasks of fnished parent task")
             if parent.deadline < deadline:
                 raise InvalidDeadlineError(
-                    "Deadline of creating task cannot be more than deadline of parent task")
+                    "Deadline of creating task cannot be later than deadline of parent task")
         return Task(
             title,
             deadline,
@@ -58,13 +59,14 @@ class TaskPlannerManagerService(BaseTaskManagerService):
             current = queue.popleft()
             if current.deadline > new_deadline:
                 raise InvalidDeadlineError(
-                    "Deadline of creating task cannot be less than deadline of subtasks")
+                    "Deadline of creating task cannot be earlier than deadline of subtasks")
             queue.extend(current.subtasks)
 
     def _validate_parent_deadline(self, new_deadline: datetime):
-        if self._task.parent.deadline < new_deadline:  # type: ignore
-            raise InvalidDeadlineError(
-                "Deadline of creating task cannot be more than deadline of parent task")
+        if self._task.parent:
+            if self._task.parent.deadline < new_deadline:  # type: ignore
+                raise InvalidDeadlineError(
+                    "Deadline of creating task cannot be later than deadline of parent task")
 
     def _validate_deadline(self, to_set: datetime):
         super()._validate_deadline(to_set)
