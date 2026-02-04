@@ -93,14 +93,15 @@ def test_producer_create_task_with_parent():
     future_deadline = datetime.now(timezone.utc) + timedelta(days=1)
 
     # Create parent with mocked depth
-    parent = Task(title="Parent", _deadline=future_deadline, user_id=1)
+    parent = Task(title="Parent", _deadline=future_deadline, user_id=1, description="")
     parent.get_depth = Mock(return_value=1)
 
     task = producer_service.create_task(
         title="Child Task",
         deadline=future_deadline,
         user_id=1,
-        parent=parent
+        parent=parent,
+        description=""
     )
 
     assert task.title == "Child Task"
@@ -116,7 +117,8 @@ def test_producer_create_task_validates_deadline():
         producer_service.create_task(
             title="Test Task",
             deadline=past_deadline,
-            user_id=1
+            user_id=1,
+            description=""
         )
 
 
@@ -126,14 +128,15 @@ def test_producer_create_task_validates_parent_depth_within_limit():
     future_deadline = datetime.now(timezone.utc) + timedelta(days=1)
 
     # Create parent at depth MAX_DEPTH - 1 (should be allowed)
-    parent = Task(title="Parent", _deadline=future_deadline, user_id=1)
+    parent = Task(title="Parent", _deadline=future_deadline, user_id=1, description="")
     parent.get_depth = Mock(return_value=MAX_DEPTH - 1)
 
     task = producer_service.create_task(
         title="Child Task",
         deadline=future_deadline,
         user_id=1,
-        parent=parent
+        parent=parent,
+        description=""
     )
 
     assert task is not None
@@ -146,7 +149,7 @@ def test_producer_create_task_validates_parent_depth_at_limit():
     future_deadline = datetime.now(timezone.utc) + timedelta(days=1)
 
     # Create parent at depth MAX_DEPTH (should fail)
-    parent = Task(title="Parent", _deadline=future_deadline, user_id=1)
+    parent = Task(title="Parent", _deadline=future_deadline, user_id=1, description="")
     parent.get_depth = Mock(return_value=MAX_DEPTH)
 
     with pytest.raises(MaxDepthError, match=f"Depth of task tree couldn't be more than {MAX_DEPTH}"):
@@ -154,7 +157,8 @@ def test_producer_create_task_validates_parent_depth_at_limit():
             title="Child Task",
             deadline=future_deadline,
             user_id=1,
-            parent=parent
+            parent=parent,
+            description=""
         )
 
 
@@ -164,7 +168,7 @@ def test_producer_create_task_validates_parent_depth_exceeds_limit():
     future_deadline = datetime.now(timezone.utc) + timedelta(days=1)
 
     # Create parent exceeding MAX_DEPTH (should fail)
-    parent = Task(title="Parent", _deadline=future_deadline, user_id=1)
+    parent = Task(title="Parent", _deadline=future_deadline, user_id=1, description="")
     parent.get_depth = Mock(return_value=MAX_DEPTH + 1)
 
     with pytest.raises(MaxDepthError, match=f"Depth of task tree couldn't be more than {MAX_DEPTH}"):
@@ -172,7 +176,8 @@ def test_producer_create_task_validates_parent_depth_exceeds_limit():
             title="Child Task",
             deadline=future_deadline,
             user_id=1,
-            parent=parent
+            parent=parent,
+            description=""
         )
 
 
@@ -216,7 +221,8 @@ def test_producer_create_task_inherits_validation_from_base():
         producer_service.create_task(
             title="Test Task",
             deadline=past_deadline,
-            user_id=1
+            user_id=1,
+            description=""
         )
 
 
@@ -238,7 +244,7 @@ def test_producer_validate_depth_uses_constant():
 def test_planner_init_with_task():
     """Test service initialization with a task."""
     future_deadline = datetime.now(timezone.utc) + timedelta(days=1)
-    task = Task(title="Test Task", _deadline=future_deadline, user_id=1)
+    task = Task(title="Test Task", _deadline=future_deadline, user_id=1, description="")
 
     service = TaskPlannerManagerService(task)
     assert service._task == task
@@ -288,7 +294,7 @@ def test_validate_subs_deadlines_subtask_has_later_deadline():
     with pytest.raises(InvalidDeadlineError) as exc_info:
         service._validate_subs_deadlines(new_deadline)
 
-    assert "cannot be less than deadline of subtasks" in str(exc_info.value)
+    assert "cannot be earlier than deadline of subtasks" in str(exc_info.value)
 
 
 def test_validate_subs_deadlines_with_nested_subtasks():
@@ -342,7 +348,7 @@ def test_validate_parent_deadline_parent_has_earlier_deadline():
     with pytest.raises(InvalidDeadlineError) as exc_info:
         service._validate_parent_deadline(new_deadline)
 
-    assert "cannot be more than deadline of parent task" in str(exc_info.value)
+    assert "cannot be later than deadline of parent task" in str(exc_info.value)
 
 
 def test_validate_parent_deadline_parent_has_later_deadline():
@@ -383,8 +389,7 @@ def test_validate_parent_deadline_no_parent():
     # Should not raise error (parent.deadline would raise AttributeError but check happens first)
     # Actually, if parent is None, accessing parent.deadline would fail
     # This test reveals a potential bug in the original code!
-    with pytest.raises(AttributeError):
-        service._validate_parent_deadline(new_deadline)
+    service._validate_parent_deadline(new_deadline)
 
 
 def test_set_deadline_updates_internal_attribute():
@@ -484,7 +489,7 @@ def test_producer_service_instantiation():
 def test_planner_service_instantiation():
     """Test that TaskPlannerManagerService can be instantiated with a task."""
     future_deadline = datetime.now(timezone.utc) + timedelta(days=1)
-    task = Task(title="Test", _deadline=future_deadline, user_id=1)
+    task = Task(title="Test", _deadline=future_deadline, user_id=1, description="")
 
     service = TaskPlannerManagerService(task)
     assert isinstance(service, TaskPlannerManagerService)
@@ -499,7 +504,7 @@ def test_producer_create_task_with_parent_deadline_earlier_than_parent():
     parent_deadline = datetime.now(timezone.utc) + timedelta(days=3)
     child_deadline = datetime.now(timezone.utc) + timedelta(days=1)  # Earlier than parent
 
-    parent = Task(title="Parent", _deadline=parent_deadline, user_id=1)
+    parent = Task(title="Parent", _deadline=parent_deadline, user_id=1, description="")
     parent.get_depth = Mock(return_value=1)
 
     # This should be allowed (no validation prevents it)
@@ -507,6 +512,7 @@ def test_producer_create_task_with_parent_deadline_earlier_than_parent():
         title="Child Task",
         deadline=child_deadline,
         user_id=1,
+        description="",
         parent=parent
     )
 

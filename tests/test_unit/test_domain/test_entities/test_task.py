@@ -12,13 +12,13 @@ pytest_mark_asyncio = pytest.mark.asyncio
 def test_task_creation():
     """Test basic task creation."""
     deadline = datetime.now(timezone.utc) + timedelta(days=1)
-    task = Task(title="Test Task", _deadline=deadline, user_id=1)
+    task = Task(title="Test Task", _deadline=deadline, user_id=1, description="")
 
     assert task.title == "Test Task"
     assert task.deadline == deadline
     assert task.user_id == 1
     assert task.id is None  # Not set initially
-    assert task.description is None
+    assert task.description == ''
     assert task.parent is None
     assert task.parent_id is None
     assert task.subtasks == []
@@ -45,7 +45,8 @@ def test_task_creation_date_auto_set():
     task = Task(
         title="Test Task",
         _deadline=datetime.now(timezone.utc) + timedelta(days=1),
-        user_id=1
+        user_id=1,
+        description=""
     )
     after_creation = datetime.now(timezone.utc)
 
@@ -60,8 +61,8 @@ def test_task_with_parent():
     parent_deadline = datetime.now(timezone.utc) + timedelta(days=3)
     child_deadline = datetime.now(timezone.utc) + timedelta(days=2)
 
-    parent = Task(title="Parent", _deadline=parent_deadline, user_id=1)
-    child = Task(title="Child", _deadline=child_deadline, user_id=1, parent=parent)
+    parent = Task(title="Parent", _deadline=parent_deadline, user_id=1, description="")
+    child = Task(title="Child", _deadline=child_deadline, user_id=1, parent=parent, description="")
     parent.subtasks.append(child)
 
     assert child.parent == parent
@@ -74,12 +75,12 @@ def test_is_root_property():
     deadline = datetime.now(timezone.utc) + timedelta(days=1)
 
     # Root task (no parent)
-    root_task = Task(title="Root", _deadline=deadline, user_id=1)
+    root_task = Task(title="Root", _deadline=deadline, user_id=1, description="")
     assert root_task.is_root is True
 
     # Child task
-    parent = Task(title="Parent", _deadline=deadline, user_id=1)
-    child = Task(title="Child", _deadline=deadline, user_id=1, parent=parent)
+    parent = Task(title="Parent", _deadline=deadline, user_id=1, description="")
+    child = Task(title="Child", _deadline=deadline, user_id=1, parent=parent, description="")
     child.parent_id = 1
     parent.subtasks.append(child)
     assert child.is_root is False
@@ -88,7 +89,7 @@ def test_is_root_property():
 def test_is_done_property():
     """Test is_done property."""
     deadline = datetime.now(timezone.utc) + timedelta(days=1)
-    task = Task(title="Test", _deadline=deadline, user_id=1)
+    task = Task(title="Test", _deadline=deadline, user_id=1, description="")
 
     # Initially not done
     assert not task.is_done
@@ -104,7 +105,7 @@ def test_is_done_property():
 def test_deadline_protected_setter():
     """Test that deadline cannot be set directly."""
     deadline = datetime.now(timezone.utc) + timedelta(days=1)
-    task = Task(title="Test", _deadline=deadline, user_id=1)
+    task = Task(title="Test", _deadline=deadline, user_id=1, description="")
 
     # Should be able to get deadline
     assert task.deadline == deadline
@@ -117,7 +118,7 @@ def test_deadline_protected_setter():
 def test_pass_date_protected_setter():
     """Test that pass_date cannot be set directly."""
     deadline = datetime.now(timezone.utc) + timedelta(days=1)
-    task = Task(title="Test", _deadline=deadline, user_id=1)
+    task = Task(title="Test", _deadline=deadline, user_id=1, description="")
 
     # Initially None
     assert task.pass_date is None
@@ -132,12 +133,12 @@ def test_force_mark_as_done():
     deadline = datetime.now(timezone.utc) + timedelta(days=1)
 
     # Create task hierarchy
-    parent = Task(title="Parent", _deadline=deadline, user_id=1)
-    child1 = Task(title="Child1", _deadline=deadline, user_id=1, parent=parent)
-    child2 = Task(title="Child2", _deadline=deadline, user_id=1, parent=parent)
+    parent = Task(title="Parent", _deadline=deadline, user_id=1, description="")
+    child1 = Task(title="Child1", _deadline=deadline, user_id=1, parent=parent, description="")
+    child2 = Task(title="Child2", _deadline=deadline, user_id=1, parent=parent, description="")
     parent.subtasks.append(child1)
     parent.subtasks.append(child2)
-    grandchild = Task(title="Grandchild", _deadline=deadline, user_id=1, parent=child1)
+    grandchild = Task(title="Grandchild", _deadline=deadline, user_id=1, parent=child1, description="")
     child1.subtasks.append(grandchild)
 
     # Initially none are done
@@ -168,9 +169,9 @@ def test_mark_as_done_success():
     deadline = datetime.now(timezone.utc) + timedelta(days=1)
 
     # Create task hierarchy
-    parent = Task(title="Parent", _deadline=deadline, user_id=1)
-    child1 = Task(title="Child1", _deadline=deadline, user_id=1, parent=parent)
-    child2 = Task(title="Child2", _deadline=deadline, user_id=1, parent=parent)
+    parent = Task(title="Parent", _deadline=deadline, user_id=1, description="")
+    child1 = Task(title="Child1", _deadline=deadline, user_id=1, parent=parent, description="")
+    child2 = Task(title="Child2", _deadline=deadline, user_id=1, parent=parent, description="")
 
     # Mark all children as done first
     child1.force_mark_as_done()
@@ -191,9 +192,9 @@ def test_mark_as_done_failure_unfinished_subtasks():
     deadline = datetime.now(timezone.utc) + timedelta(days=1)
 
     # Create task hierarchy
-    parent = Task(title="Parent", _deadline=deadline, user_id=1)
-    child1 = Task(title="Child1", _deadline=deadline, user_id=1, parent=parent)
-    child2 = Task(title="Child2", _deadline=deadline, user_id=1, parent=parent)
+    parent = Task(title="Parent", _deadline=deadline, user_id=1, description="")
+    child1 = Task(title="Child1", _deadline=deadline, user_id=1, parent=parent, description="")
+    child2 = Task(title="Child2", _deadline=deadline, user_id=1, parent=parent, description="")
     parent.subtasks.append(child1)
     parent.subtasks.append(child2)
 
@@ -214,10 +215,10 @@ def test_mark_as_done_nested_hierarchy():
     deadline = datetime.now(timezone.utc) + timedelta(days=1)
 
     # Create deep hierarchy
-    root = Task(title="Root", _deadline=deadline, user_id=1)
-    level1 = Task(title="Level1", _deadline=deadline, user_id=1, parent=root)
-    level2 = Task(title="Level2", _deadline=deadline, user_id=1, parent=level1)
-    level3 = Task(title="Level3", _deadline=deadline, user_id=1, parent=level2)
+    root = Task(title="Root", _deadline=deadline, user_id=1, description="")
+    level1 = Task(title="Level1", _deadline=deadline, user_id=1, parent=root, description="")
+    level2 = Task(title="Level2", _deadline=deadline, user_id=1, parent=level1, description="")
+    level3 = Task(title="Level3", _deadline=deadline, user_id=1, parent=level2, description="")
 
     # Mark from bottom up
     level3.force_mark_as_done()
@@ -234,20 +235,20 @@ def test_get_depth():
     deadline = datetime.now(timezone.utc) + timedelta(days=1)
 
     # Root task
-    root = Task(title="Root", _deadline=deadline, user_id=1)
+    root = Task(title="Root", _deadline=deadline, user_id=1, description="")
     assert root.get_depth() == 1
 
     # First level child
-    child1 = Task(title="Child1", _deadline=deadline, user_id=1, parent=root)
+    child1 = Task(title="Child1", _deadline=deadline, user_id=1, parent=root, description="")
     assert child1.get_depth() == 2
 
     # Second level child
-    grandchild = Task(title="Grandchild", _deadline=deadline, user_id=1, parent=child1)
+    grandchild = Task(title="Grandchild", _deadline=deadline, user_id=1, parent=child1, description="")
     assert grandchild.get_depth() == 3
 
     # Third level child
     great_grandchild = Task(title="GreatGrandchild", _deadline=deadline,
-                            user_id=1, parent=grandchild)
+                            user_id=1, parent=grandchild, description="")
     assert great_grandchild.get_depth() == 4
 
 
@@ -255,11 +256,11 @@ def test_get_depth_with_multiple_branches():
     """Test get_depth with multiple branches."""
     deadline = datetime.now(timezone.utc) + timedelta(days=1)
 
-    root = Task(title="Root", _deadline=deadline, user_id=1)
-    branch1 = Task(title="Branch1", _deadline=deadline, user_id=1, parent=root)
-    branch2 = Task(title="Branch2", _deadline=deadline, user_id=1, parent=root)
-    leaf1 = Task(title="Leaf1", _deadline=deadline, user_id=1, parent=branch1)
-    leaf2 = Task(title="Leaf2", _deadline=deadline, user_id=1, parent=branch2)
+    root = Task(title="Root", _deadline=deadline, user_id=1, description="")
+    branch1 = Task(title="Branch1", _deadline=deadline, user_id=1, parent=root, description="")
+    branch2 = Task(title="Branch2", _deadline=deadline, user_id=1, parent=root, description="")
+    leaf1 = Task(title="Leaf1", _deadline=deadline, user_id=1, parent=branch1, description="")
+    leaf2 = Task(title="Leaf2", _deadline=deadline, user_id=1, parent=branch2, description="")
 
     assert root.get_depth() == 1
     assert branch1.get_depth() == 2
@@ -272,8 +273,8 @@ def test_task_equality_by_identity():
     """Test that tasks are compared by identity, not value."""
     deadline = datetime.now(timezone.utc) + timedelta(days=1)
 
-    task1 = Task(title="Task1", _deadline=deadline, user_id=1)
-    task2 = Task(title="Task2", _deadline=deadline, user_id=1)
+    task1 = Task(title="Task1", _deadline=deadline, user_id=1, description="")
+    task2 = Task(title="Task2", _deadline=deadline, user_id=1, description="")
     task3 = task1  # Same reference
 
     assert task1 is not task2  # Different objects
@@ -286,9 +287,9 @@ def test_subtasks_list_manipulation():
     """Test manipulating subtasks list."""
     deadline = datetime.now(timezone.utc) + timedelta(days=1)
 
-    parent = Task(title="Parent", _deadline=deadline, user_id=1)
-    child1 = Task(title="Child1", _deadline=deadline, user_id=1, parent=parent)
-    child2 = Task(title="Child2", _deadline=deadline, user_id=1, parent=parent)
+    parent = Task(title="Parent", _deadline=deadline, user_id=1, description="")
+    child1 = Task(title="Child1", _deadline=deadline, user_id=1, parent=parent, description="")
+    child2 = Task(title="Child2", _deadline=deadline, user_id=1, parent=parent, description="")
     parent.subtasks.append(child1)
     parent.subtasks.append(child2)
 
@@ -298,7 +299,7 @@ def test_subtasks_list_manipulation():
     assert child2 in parent.subtasks
 
     # Manually manipulate subtasks list (if needed for tests)
-    parent.subtasks.append(Task(title="Child3", _deadline=deadline, user_id=1))
+    parent.subtasks.append(Task(title="Child3", _deadline=deadline, user_id=1, description=""))
     assert len(parent.subtasks) == 3
 
 
@@ -328,10 +329,10 @@ def root_task(sample_deadline):
 @pytest.fixture
 def task_hierarchy(sample_deadline):
     """Create a 3-level task hierarchy with proper bidirectional relationships."""
-    root = Task(title="Root", _deadline=sample_deadline, user_id=1)
-    child1 = Task(title="Child1", _deadline=sample_deadline, user_id=1, parent=root)
-    child2 = Task(title="Child2", _deadline=sample_deadline, user_id=1, parent=root)
-    grandchild = Task(title="Grandchild", _deadline=sample_deadline, user_id=1, parent=child1)
+    root = Task(title="Root", _deadline=sample_deadline, user_id=1, description="")
+    child1 = Task(title="Child1", _deadline=sample_deadline, user_id=1, parent=root, description="")
+    child2 = Task(title="Child2", _deadline=sample_deadline, user_id=1, parent=root, description="")
+    grandchild = Task(title="Grandchild", _deadline=sample_deadline, user_id=1, parent=child1, description="")
 
     # Manually set up bidirectional relationships for unit tests
     root.subtasks = [child1, child2]

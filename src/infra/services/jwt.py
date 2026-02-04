@@ -19,4 +19,4 @@ class JWTAuthenticationService(AuthenticationServiceInterface):
         return payload["tg_name"]
 
     def decode(self, token: str) -> dict:
-        return jwt.decode(token, self._secret, ["HS256"], options={"require": ["tg_name"]})
+        return jwt.decode(token, self._secret, ["HS256"], options={"require": ["exp", "tg_name"]})

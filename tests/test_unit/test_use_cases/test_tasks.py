@@ -110,7 +110,8 @@ def test_execute_parent_not_found():
     dto = TaskCreateDTO(
         title="Task",
         deadline=datetime.now(timezone.utc) + timedelta(days=1),
-        parent_id=parent_id
+        parent_id=parent_id,
+        description=""
     )
 
     async def aenter(self):
@@ -145,7 +146,8 @@ def test_execute_parent_exceeds_max_depth():
     dto = TaskCreateDTO(
         title="Subtask",
         deadline=datetime.now(timezone.utc) + timedelta(days=1),
-        parent_id=parent_id
+        parent_id=parent_id,
+        description=""
     )
 
     # Mock parent at max depth
@@ -186,7 +188,8 @@ def test_execute_parent_is_done():
     dto = TaskCreateDTO(
         title="Subtask",
         deadline=datetime.now(timezone.utc) + timedelta(days=1),
-        parent_id=parent_id
+        parent_id=parent_id,
+        description=""
     )
 
     # Mock parent that's done
@@ -227,7 +230,8 @@ def test_execute_subtask_deadline_exceeds_parent():
     dto = TaskCreateDTO(
         title="Subtask",
         deadline=datetime.now(timezone.utc) + timedelta(days=3),  # Later than parent
-        parent_id=parent_id
+        parent_id=parent_id,
+        description=""
     )
 
     # Mock parent with earlier deadline
@@ -252,7 +256,7 @@ def test_execute_subtask_deadline_exceeds_parent():
     with pytest.raises(InvalidDeadlineError) as exc_info:
         asyncio.run(create_use_case.execute(user_id, dto))
 
-    assert "Deadline of creating task cannot be more than deadline of parent task" in str(
+    assert "Deadline of creating task cannot be later than deadline of parent task" in str(
         exc_info.value)
     mock_task_repo.get_with_parents.assert_called_once_with(parent_id)
     mock_uow.save.assert_not_called()
@@ -268,7 +272,8 @@ def test_execute_past_deadline():
     dto = TaskCreateDTO(
         title="Task",
         deadline=datetime.now(timezone.utc) - timedelta(minutes=1),  # Past deadline
-        parent_id=None
+        parent_id=None,
+        description=""
     )
 
     async def aenter(self):
@@ -302,7 +307,8 @@ def test_execute_current_deadline():
     dto = TaskCreateDTO(
         title="Task",
         deadline=current_time,  # Current time
-        parent_id=None
+        parent_id=None,
+        description=""
     )
 
     async def aenter(self):
@@ -336,7 +342,8 @@ def test_execute_repository_raises_exception():
     dto = TaskCreateDTO(
         title="Task",
         deadline=datetime.now(timezone.utc) + timedelta(days=1),
-        parent_id=parent_id
+        parent_id=parent_id,
+        description=""
     )
 
     async def aenter(self):
@@ -370,7 +377,8 @@ def test_execute_task_producer_service_used():
     dto = TaskCreateDTO(
         title="Test Task",
         deadline=datetime.now(timezone.utc) + timedelta(days=1),
-        parent_id=None
+        parent_id=None,
+        description=""
     )
 
     async def aenter(self):
@@ -396,8 +404,8 @@ def test_execute_task_producer_service_used():
             dto.title,
             dto.deadline,
             user_id,
+            dto.description,
             None,  # parent
-            dto.description
         )
         mock_uow.save.assert_called_once_with(mock_created_task)
 
@@ -490,7 +498,7 @@ def test_execute_update_deadline_only():
     dto = TaskUpdateDTO(
         title=None,
         description=None,
-        deadline=new_deadline
+        deadline=new_deadline,
     )
 
     mock_task = Mock()
@@ -763,13 +771,13 @@ def test_finish_task_success():
     task_id = 123
 
     # Create actual Task objects
-    subtask1 = Task("Subtask 1", datetime.now(timezone.utc) + timedelta(days=1), user_id=1)
+    subtask1 = Task("Subtask 1", datetime.now(timezone.utc) + timedelta(days=1), user_id=1, description="")
     subtask1._pass_date = datetime.now(timezone.utc)  # Already done
 
-    subtask2 = Task("Subtask 2", datetime.now(timezone.utc) + timedelta(days=2), user_id=1)
+    subtask2 = Task("Subtask 2", datetime.now(timezone.utc) + timedelta(days=2), user_id=1, description="")
     subtask2._pass_date = datetime.now(timezone.utc)  # Already done
 
-    task = Task("Main Task", datetime.now(timezone.utc) + timedelta(days=3), user_id=1)
+    task = Task("Main Task", datetime.now(timezone.utc) + timedelta(days=3), user_id=1, description="")
     task.subtasks = [subtask1, subtask2]
 
     async def aenter(self):
@@ -801,7 +809,7 @@ def test_finish_task_already_finished():
 
     task_id = 123
 
-    task = Task("Main Task", datetime.now(timezone.utc) + timedelta(days=1), user_id=1)
+    task = Task("Main Task", datetime.now(timezone.utc) + timedelta(days=1), user_id=1, description="")
     task._pass_date = datetime.now(timezone.utc)  # Already done
 
     async def aenter(self):
@@ -833,10 +841,10 @@ def test_finish_task_with_unfinished_subtasks():
     task_id = 123
 
     # Create task with unfinished subtask
-    subtask = Task("Subtask", datetime.now(timezone.utc) + timedelta(days=1), user_id=1)
+    subtask = Task("Subtask", datetime.now(timezone.utc) + timedelta(days=1), user_id=1, description="")
     # Not marked as done
 
-    task = Task("Main Task", datetime.now(timezone.utc) + timedelta(days=2), user_id=1)
+    task = Task("Main Task", datetime.now(timezone.utc) + timedelta(days=2), user_id=1, description="")
     task.subtasks = [subtask]
 
     async def aenter(self):
@@ -870,14 +878,14 @@ def test_finish_task_nested_subtasks_unfinished():
 
     # Create nested structure: task -> subtask -> nested_subtask (unfinished)
     nested_subtask = Task("Nested Subtask", datetime.now(
-        timezone.utc) + timedelta(days=1), user_id=1)
+        timezone.utc) + timedelta(days=1), user_id=1, description="")
     # Not marked as done
 
-    subtask = Task("Subtask", datetime.now(timezone.utc) + timedelta(days=2), user_id=1)
+    subtask = Task("Subtask", datetime.now(timezone.utc) + timedelta(days=2), user_id=1, description="")
     subtask._pass_date = datetime.now(timezone.utc)  # Parent is done
     subtask.subtasks = [nested_subtask]
 
-    task = Task("Main Task", datetime.now(timezone.utc) + timedelta(days=3), user_id=1)
+    task = Task("Main Task", datetime.now(timezone.utc) + timedelta(days=3), user_id=1, description="")
     task.subtasks = [subtask]
 
     async def aenter(self):
@@ -910,13 +918,13 @@ def test_force_finish_task_success():
     task_id = 123
 
     # Create task with unfinished subtasks (should still work with force)
-    subtask1 = Task("Subtask 1", datetime.now(timezone.utc) + timedelta(days=1), user_id=1)
+    subtask1 = Task("Subtask 1", datetime.now(timezone.utc) + timedelta(days=1), user_id=1, description="")
     # Not marked as done
 
-    subtask2 = Task("Subtask 2", datetime.now(timezone.utc) + timedelta(days=2), user_id=1)
+    subtask2 = Task("Subtask 2", datetime.now(timezone.utc) + timedelta(days=2), user_id=1, description="")
     subtask2._pass_date = datetime.now(timezone.utc)  # Already done
 
-    task = Task("Main Task", datetime.now(timezone.utc) + timedelta(days=3), user_id=1)
+    task = Task("Main Task", datetime.now(timezone.utc) + timedelta(days=3), user_id=1, description="")
     task.subtasks = [subtask1, subtask2]
 
     async def aenter(self):
@@ -951,7 +959,7 @@ def test_force_finish_task_already_finished():
 
     task_id = 123
 
-    task = Task("Main Task", datetime.now(timezone.utc) + timedelta(days=1), user_id=1)
+    task = Task("Main Task", datetime.now(timezone.utc) + timedelta(days=1), user_id=1, description="")
     task._pass_date = datetime.now(timezone.utc)  # Already done
 
     async def aenter(self):
@@ -983,15 +991,15 @@ def test_force_finish_task_nested_subtasks():
     task_id = 123
 
     # Create deep nested structure
-    deep_nested = Task("Deep Nested", datetime.now(timezone.utc) + timedelta(days=1), user_id=1)
+    deep_nested = Task("Deep Nested", datetime.now(timezone.utc) + timedelta(days=1), user_id=1, description="")
 
-    nested = Task("Nested", datetime.now(timezone.utc) + timedelta(days=2), user_id=1)
+    nested = Task("Nested", datetime.now(timezone.utc) + timedelta(days=2), user_id=1, description="")
     nested.subtasks = [deep_nested]
 
-    subtask = Task("Subtask", datetime.now(timezone.utc) + timedelta(days=3), user_id=1)
+    subtask = Task("Subtask", datetime.now(timezone.utc) + timedelta(days=3), user_id=1, description="")
     subtask.subtasks = [nested]
 
-    task = Task("Main Task", datetime.now(timezone.utc) + timedelta(days=4), user_id=1)
+    task = Task("Main Task", datetime.now(timezone.utc) + timedelta(days=4), user_id=1, description="")
     task.subtasks = [subtask]
 
     async def aenter(self):
@@ -1025,7 +1033,7 @@ def test_finish_task_no_subtasks():
 
     task_id = 123
 
-    task = Task("Main Task", datetime.now(timezone.utc) + timedelta(days=1), user_id=1)
+    task = Task("Main Task", datetime.now(timezone.utc) + timedelta(days=1), user_id=1, description="")
     task.subtasks = []  # No subtasks
 
     async def aenter(self):
@@ -1057,7 +1065,7 @@ def test_force_finish_task_no_subtasks():
 
     task_id = 123
 
-    task = Task("Main Task", datetime.now(timezone.utc) + timedelta(days=1), user_id=1)
+    task = Task("Main Task", datetime.now(timezone.utc) + timedelta(days=1), user_id=1, description="")
     task.subtasks = []  # No subtasks
 
     async def aenter(self):
@@ -1090,10 +1098,10 @@ def test_uow_exception_propagation():
     task_id = 123
 
     # Create a task that will raise an exception when mark_as_done is called
-    subtask = Task("Subtask", datetime.now(timezone.utc) + timedelta(days=1), user_id=1)
+    subtask = Task("Subtask", datetime.now(timezone.utc) + timedelta(days=1), user_id=1, description="")
     # Not done, so mark_as_done will raise UnfinishedTaskError
 
-    task = Task("Main Task", datetime.now(timezone.utc) + timedelta(days=2), user_id=1)
+    task = Task("Main Task", datetime.now(timezone.utc) + timedelta(days=2), user_id=1, description="")
     task.subtasks = [subtask]
 
     async def aenter(self):
