@@ -26,6 +26,10 @@ class TaskPreviewDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ForceFinishResponseDTO(BaseModel):
+    subtasks_ids: list[int]
+
+
 class TaskViewDTO(BaseModel):
     id: int
     title: str
@@ -44,12 +48,5 @@ class PaginatedTasksDTO(BaseModel):
     tasks: list[TaskPreviewDTO]
 
 
-class TaskViewForUserDTO(BaseModel):
-    id: int
-    title: str
-    description: str
-    creation_date: datetime
-    deadline: datetime
-    pass_date: Optional[datetime] = None
-    parent_id: Optional[int] = None
-    subtasks: list['TaskViewForUserDTO'] = []
+class DeleteResponseDTO(BaseModel):
+    subtasks_ids: list[int]

@@ -7,9 +7,10 @@ from src.application.use_cases import *
 from src.application.dto.task import (
     TaskCreateDTO,
     TaskUpdateDTO,
-    TaskViewForUserDTO,
+    DeleteResponseDTO,
     TaskViewDTO,
-    PaginatedTasksDTO
+    PaginatedTasksDTO,
+    ForceFinishResponseDTO
 )
 from src.domain.types import AuthenticatedUserId, AuthenticatedOwnerId
 from src.logger import logger
@@ -97,8 +98,8 @@ async def force_finish_task(
     user_id: FromDishka[AuthenticatedOwnerId],
     use_case: FromDishka[ForceFinishTask],
     task_id: int
-):
-    await use_case.execute(task_id)
+) -> ForceFinishResponseDTO:
+    return ForceFinishResponseDTO(subtasks_ids=await use_case.execute(task_id))
 
 
 @task_router.delete('/{task_id}')
@@ -106,8 +107,8 @@ async def delete_task(
     user_id: FromDishka[AuthenticatedOwnerId],
     use_case: FromDishka[DeleteTask],
     task_id: int
-):
-    await use_case.execute(task_id)
+) -> DeleteResponseDTO:
+    return DeleteResponseDTO(subtasks_ids=await use_case.execute(task_id))
 
 
 @task_router.get("/{task_id}/is_active")

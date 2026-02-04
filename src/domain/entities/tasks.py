@@ -64,3 +64,13 @@ class Task:
         if self.parent is None:
             return 1
         return self.parent.get_depth() + 1
+
+    def get_subs_ids(self) -> list[int]:
+        subs_ids = []
+
+        def collect_ids(task: Task):
+            for sub in task.subtasks:
+                subs_ids.append(sub.id)
+                collect_ids(sub)
+        collect_ids(self)
+        return subs_ids
