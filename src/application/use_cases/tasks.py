@@ -102,7 +102,9 @@ class UpdateTask(BaseTaskUseCase):
 class DeleteTask(BaseTaskUseCase):
     async def execute(self, task_id: int):
         async with self._uow:
-            return await self._task_repo.delete_task(task_id)
+            subs_ids = await self._task_repo.get_all_subtask_ids(task_id)
+            await self._task_repo.delete_task(task_id)
+            return subs_ids
 
 
 class FinishTask(BaseTaskUseCase):
@@ -135,3 +137,4 @@ class ForceFinishTask(BaseTaskUseCase):
             if task.is_done:
                 raise TaskAlreadyFinishedError("Task already finished")
             task.force_mark_as_done()
+            return task.get_subs_ids()

@@ -1,7 +1,7 @@
 from typing import Optional, Literal
 
-from sqlalchemy import select, delete, desc
-from sqlalchemy.orm import selectinload
+from sqlalchemy import select, delete, desc, text
+from sqlalchemy.orm import selectinload, aliased
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.entities import Task
@@ -87,3 +87,24 @@ class AlchemyTaskRepository(TaskRepositoryInterface):
 
     async def delete_task(self, task_id: int) -> None:
         return await self._session.execute(delete(Task).where(Task.id == task_id))  # type: ignore
+
+    async def get_all_subtask_ids(self, task_id: int) -> list[int]:
+        sql = """
+            WITH RECURSIVE subtasks AS (
+            SELECT id, parent_id
+            FROM tasks
+            WHERE id=:task_id
+            UNION ALL
+            SELECT t.id, t.parent_id
+            FROM tasks t
+            INNER JOIN subtasks s ON t.parent_id=s.id
+            )
+            SELECT id FROM subtasks WHERE id!=:task_id
+            """
+
+        result = await self._session.execute(
+            text(sql.strip()),
+            {"task_id": task_id}
+        )
+
+        return [row[0] for row in result.all()]
